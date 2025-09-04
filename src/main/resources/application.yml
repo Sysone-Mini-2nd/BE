@@ -11,9 +11,9 @@ spring:
   # DataBase
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
-    url: jdbc:oracle:thin:@localhost:1521/FREEPDB1
-    username: SCOTT
-    password: TIGER
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     type: com.zaxxer.hikari.HikariDataSource
 
 # mybatis sql ??
