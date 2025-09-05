@@ -33,3 +33,10 @@ mybatis:
     map-underscore-to-camel-case: true
   plugins:
     - com.sys.stm.global.common.interceptor.AuditingInterceptor
+
+
+cloud:
+  naver:
+    clova:
+      client: ${NAVER_CLIENT}
+      secret: ${NAVER_SECRET}
