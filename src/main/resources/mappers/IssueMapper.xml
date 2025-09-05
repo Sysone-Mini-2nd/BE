@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.issue.dao.IssueRepository">
+    <!-- Detail 출력용 IssueDetailMap -->
+    <resultMap id="issueDetailMap" type="com.sys.stm.domains.issue.dto.response.IssueDetailResponse">
+        <id property="id" column="id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <collection property="tags"
+                    ofType="com.sys.stm.domains.tag.Tag"
+                    column="id"
+                    select="findTagsByIssueId"/>
+    </resultMap>
+
+    <!-- List 출력용 IssueSummaryMap -->
+    <resultMap id="issueSummaryMap" type="com.sys.stm.domains.issue.dto.response.IssueSummaryResponse">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="memberName" column="member_name"/>
+        <result property="memberId" column="member_id"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="dDay" column="d_day"/>
+
+        <collection property="tags"
+                    ofType="com.sys.stm.domains.tag.Tag"
+                    column="id"
+                    select="findTagsByIssueId"/>
+    </resultMap>
+
+    <!-- 태그 할당용 쿼리 -->
+    <select id="findTagsByIssueId" parameterType="long" resultType="com.sys.stm.domains.tag.Tag">
+        SELECT t."id", t."name"
+        FROM "tag" t
+                 JOIN "issue_tag" it ON t."id" = it."tag_id"
+        WHERE it."issue_id" = #{issueId}
+    </select>
+
+    <select id="findById" parameterType="Long" resultMap="issueDetailMap">
+        SELECT
+            "id", "project_id", "member_id", "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at", "is_deleted"
+        FROM "issue"
+        WHERE "id" = #{id} AND "is_deleted" = 0
+    </select>
+
+    <select id="findAllFilteredSummary" resultMap="issueSummaryMap" parameterType="com.sys.stm.domains.issue.dto.request.IssueListRequest">
+        SELECT
+        i."id",
+        i."title",
+        i."desc",
+        m."name" AS member_name,
+        i."member_id",
+        i."status",
+        i."priority",
+        i."start_date",
+        i."end_date",
+        TRUNC(CAST(i."end_date" AS DATE) - SYSDATE) AS d_day
+        FROM "issue" i
+        LEFT JOIN "member" m ON i."member_id" = m."id"
+        WHERE i."is_deleted" = 0
+        AND i."project_id" = #{projectId}
+        <if test="priority != null">
+            AND i."priority" = #{priority}
+        </if>
+        <if test="assigneeId != null">
+            AND i."member_id" = #{assigneeId}
+        </if>
+        <if test="status != null">
+            AND i."status" = #{status}
+        </if>
+    </select>
+
+</mapper>
