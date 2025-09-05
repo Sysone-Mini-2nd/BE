@@ -2,7 +2,7 @@ package com.sys.stm.domains.issue.dto.response;
 
 import com.sys.stm.domains.issue.domain.IssuePriority;
 import com.sys.stm.domains.issue.domain.IssueStatus;
-import com.sys.stm.domains.tag.Tag;
+import com.sys.stm.domains.tag.domain.Tag;
 import java.sql.Timestamp;
 import java.util.List;
 import lombok.AllArgsConstructor;

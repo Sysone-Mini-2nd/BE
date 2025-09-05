@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.tag.dao.TagRepository">
+    <!-- 전체 조회 -->
+    <select id="findTags" resultType="com.sys.stm.domains.tag.domain.Tag">
+        SELECT "id", "name"
+        FROM "tag"
+    </select>
+
+    <!-- INSERT -->
+    <insert id="insertTag" parameterType="string">
+        INSERT INTO "tag" ("name")
+        VALUES (#{name})
+    </insert>
+
+    <!-- UPDATE -->
+    <update id="updateTag" parameterType="com.sys.stm.domains.tag.domain.Tag">
+        UPDATE "tag"
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+    <!-- DELETE -->
+    <delete id="deleteTag" parameterType="long">
+        DELETE FROM "tag"
+        WHERE id = #{id}
+    </delete>
+</mapper>
