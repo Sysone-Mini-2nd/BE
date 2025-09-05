@@ -108,4 +108,27 @@
                )
     </insert>
 
+    <!-- 작업(issue) 상태 변경 -->
+    <update id="updateIssueStatus" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        UPDATE "issue"
+        SET
+            "status" = #{status},
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+
+    <!-- 작업(issue) 모든 데이터 변경 -->
+    <update id="updateIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        UPDATE "issue"
+        SET
+            "member_id" = #{memberId},
+            "title" = #{title},
+            "desc" = #{desc},
+            "status" = #{status},
+            "priority" = #{priority},
+            "start_date" = #{startDate},
+            "end_date" = #{endDate},
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
 </mapper>

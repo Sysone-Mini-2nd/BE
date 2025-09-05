@@ -1,16 +1,15 @@
 package com.sys.stm.domains.issueTag.dao;
 
+import com.sys.stm.domains.tag.domain.Tag;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface IssueTagRepository {
+    List<Tag> findAllByIssueId(Long issueId);
+
     int insertIssueTag(@Param("issueId") Long issueId,
                         @Param("tagId") Long tagId);
-    int deleteIssueTag(@Param("issueId") Long issueId,
-                        @Param("tagId") Long tagId);
-    int updateIssueTag(@Param("issueId") Long issueId,
-                        @Param("prevTagId") Long prevTagId,
-                        @Param("nextTagId") Long nextTagId);
-    int deleteIssueTagByIssueId(@Param("issueId") Long issueId);
+    int deleteIssueTag(Long tagId);
 }

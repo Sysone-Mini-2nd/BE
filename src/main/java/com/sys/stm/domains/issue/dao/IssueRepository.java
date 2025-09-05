@@ -14,4 +14,6 @@ public interface IssueRepository {
     List<IssueSummaryResponse> findAllFilteredSummary(IssueListRequest issueListRequest);
     int createIssue(Issue issue); // 실패 0 성공 1
     Long findLastInsertedId();
+    int updateIssueStatus(Issue issue);
+    int updateIssue(Issue issue);
 }
