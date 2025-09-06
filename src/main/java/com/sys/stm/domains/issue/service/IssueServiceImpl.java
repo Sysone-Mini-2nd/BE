@@ -10,7 +10,7 @@ import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
 import com.sys.stm.domains.issue.dto.response.IssueListResponse;
 import com.sys.stm.domains.issue.dto.response.IssueSummaryResponse;
 import com.sys.stm.domains.issueTag.dao.IssueTagRepository;
-import com.sys.stm.domains.tag.domain.Tag;
+import com.sys.stm.domains.issueTag.domain.IssueTag;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
@@ -111,12 +111,14 @@ public class IssueServiceImpl implements IssueService {
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
         
-        // todo: 태그 변경사항 처리
         List<Long> newTagIds = issueUpdateRequest.getTagIds();
-        List<Tag> prevTags = issueTagRepository.findAllByIssueId(issueId);
+        if (newTagIds == null) {
+            newTagIds = new java.util.ArrayList<>();
+        }
+        List<IssueTag> prevIssueTags = issueTagRepository.findAllByIssueId(issueId);
 
-        List<Long> prevTagIds = prevTags.stream()
-                .map(Tag::getId)
+        List<Long> prevTagIds = prevIssueTags.stream()
+                .map(IssueTag::getTagId)
                 .toList();
 
         // 추가할 태그
@@ -128,15 +130,13 @@ public class IssueServiceImpl implements IssueService {
             }
         }
 
-        // 삭제할 태그
-        for (Tag prevTag : prevTags) {
-            if (!newTagIds.contains(prevTag.getId())) {
-                if (issueTagRepository.deleteIssueTag(prevTag.getId()) == 0) {
+        for (IssueTag prevIssueTag : prevIssueTags) {
+            if (!newTagIds.contains(prevIssueTag.getTagId())) {
+                if (issueTagRepository.deleteIssueTagById(prevIssueTag.getId()) == 0) {
                     throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
                 }
             }
         }
-
 
         return issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(ExceptionMessage.DATA_NOT_FOUND));
