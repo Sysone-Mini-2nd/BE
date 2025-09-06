@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IssueListRequest {
-    private Long projectId;    // 프로젝트 ID
     private String priority;   // 우선순위
-    private Long assigneeId;   // 담당자
+    private Long memberId;   // 담당자
     private String status;     // 상태
+    private String search;   // 검색어
 }

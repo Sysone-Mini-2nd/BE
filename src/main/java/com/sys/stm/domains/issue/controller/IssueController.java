@@ -1,6 +1,7 @@
 package com.sys.stm.domains.issue.controller;
 
 import com.sys.stm.domains.issue.dto.request.IssueCreateRequest;
+import com.sys.stm.domains.issue.dto.request.IssueListRequest;
 import com.sys.stm.domains.issue.dto.request.IssuePatchRequest;
 import com.sys.stm.domains.issue.dto.request.IssueUpdateRequest;
 import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,17 +32,15 @@ public class IssueController {
     @GetMapping("projects/{projectId}/issues")
     public ApiResponse<IssueListResponse> getIssuesByProjectId(
             @PathVariable Long projectId,
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) Long assigneeId,
-            @RequestParam(required = false) String status
+            IssueListRequest issueListRequest
     ) {
-        // todo: 쿼리 파라미터 처리 방법 다시 고려해보기
-        return ApiResponse.ok(issueService.getProjectIssues(projectId, priority, assigneeId, status));
+        return ApiResponse.ok(issueService.getProjectIssues(projectId, issueListRequest));
     }
 
     @PostMapping("projects/{projectId}/issues")
     public ApiResponse<IssueDetailResponse> createIssue(
-            @PathVariable Long projectId, @RequestBody IssueCreateRequest issueCreateRequest
+            @PathVariable Long projectId,
+            @RequestBody IssueCreateRequest issueCreateRequest
     ) {
         return ApiResponse.ok(issueService.createProjectIssue(projectId, issueCreateRequest));
     }

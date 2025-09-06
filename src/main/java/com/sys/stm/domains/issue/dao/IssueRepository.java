@@ -7,11 +7,12 @@ import com.sys.stm.domains.issue.dto.response.IssueSummaryResponse;
 import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface IssueRepository {
     Optional<IssueDetailResponse> findById(Long id);
-    List<IssueSummaryResponse> findAllFilteredSummary(IssueListRequest issueListRequest);
+    List<IssueSummaryResponse> findAllFilteredSummary(@Param("projectId") Long projectId, @Param("issueListRequest") IssueListRequest issueListRequest);
     int createIssue(Issue issue); // 실패 0 성공 1
     Long findLastInsertedId();
     int updateIssueStatus(Issue issue);

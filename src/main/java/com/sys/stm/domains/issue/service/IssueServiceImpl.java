@@ -32,15 +32,8 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
-    public IssueListResponse getProjectIssues(Long projectId, String priority, Long assigneeId, String status) {
-        IssueListRequest issueListRequest = IssueListRequest.builder()
-                .projectId(projectId)
-                .priority(priority)
-                .assigneeId(assigneeId)
-                .status(status)
-                .build();
-
-        List<IssueSummaryResponse> allSummary = issueRepository.findAllFilteredSummary(issueListRequest);
+    public IssueListResponse getProjectIssues(Long projectId, IssueListRequest issueListRequest) {
+        List<IssueSummaryResponse> allSummary = issueRepository.findAllFilteredSummary(projectId, issueListRequest);
 
         return IssueListResponse.builder()
                 .issues(allSummary)

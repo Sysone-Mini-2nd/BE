@@ -76,14 +76,20 @@
             LEFT JOIN "member" m ON i."member_id" = m."id"
         WHERE i."is_deleted" = 0
             AND i."project_id" = #{projectId}
-            <if test="priority != null">
-                AND i."priority" = #{priority}
+            <if test="issueListRequest.priority != null">
+                AND i."priority" = #{issueListRequest.priority}
             </if>
-            <if test="assigneeId != null">
-                AND i."member_id" = #{assigneeId}
+            <if test="issueListRequest.memberId != null">
+                AND i."member_id" = #{issueListRequest.memberId}
             </if>
-            <if test="status != null">
-                AND i."status" = #{status}
+            <if test="issueListRequest.status != null">
+                AND i."status" = #{issueListRequest.status}
+            </if>
+            <if test="issueListRequest.search != null and issueListRequest.search != ''">
+                AND (
+                LOWER(i."title") LIKE '%' || LOWER(#{issueListRequest.search}) || '%'
+                OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequest.search}) || '%'
+                )
             </if>
     </select>
 
