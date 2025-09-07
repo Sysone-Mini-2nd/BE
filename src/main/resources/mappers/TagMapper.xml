@@ -6,6 +6,7 @@
     <select id="findTags" resultType="com.sys.stm.domains.tag.domain.Tag">
         SELECT "id", "name"
         FROM "tag"
+        ORDER BY "id"
     </select>
 
     <!-- INSERT -->
