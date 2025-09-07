@@ -100,6 +100,9 @@
 
     <!-- 작업(issue) 생성 -->
     <insert id="createIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SEQ_ISSUE.CURRVAL FROM dual
+        </selectKey>
         INSERT INTO "issue"(
             "project_id", "member_id",
             "title", "desc", "status",

@@ -1,5 +1,8 @@
 package com.sys.stm.domains.issue.controller;
 
+import com.sys.stm.domains.comment.dto.request.CommentCreateRequest;
+import com.sys.stm.domains.comment.dto.response.CommentDetailResponse;
+import com.sys.stm.domains.comment.service.CommentService;
 import com.sys.stm.domains.issue.dto.request.IssueCreateRequest;
 import com.sys.stm.domains.issue.dto.request.IssueListRequest;
 import com.sys.stm.domains.issue.dto.request.IssuePatchRequest;
@@ -8,6 +11,7 @@ import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
 import com.sys.stm.domains.issue.dto.response.IssueListResponse;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.global.common.response.ApiResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class IssueController {
     private final IssueService issueService;
+    private final CommentService commentService;
 
     @GetMapping("issues/{issueId}")
     public ApiResponse<IssueDetailResponse> getIssue(@PathVariable Long issueId) {
@@ -59,5 +64,18 @@ public class IssueController {
             @RequestBody IssueUpdateRequest issueUpdateRequest
     ) {
         return ApiResponse.ok(issueService.updateIssue(issueId, issueUpdateRequest));
+    }
+
+    @GetMapping("issues/{issueId}/comments")
+    public ApiResponse<List<CommentDetailResponse>> getComments(@PathVariable Long issueId) {
+        return ApiResponse.ok(commentService.getCommentsByIssueId(issueId));
+    }
+
+    @PostMapping("issues/{issueId}/comments")
+    public ApiResponse<CommentDetailResponse> getComments(
+            @PathVariable Long issueId,
+            @RequestBody CommentCreateRequest commentCreateRequest
+    ) {
+        return ApiResponse.ok(commentService.createIssueComment(issueId, commentCreateRequest));
     }
 }

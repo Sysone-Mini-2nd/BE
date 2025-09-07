@@ -16,11 +16,13 @@ import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class IssueServiceImpl implements IssueService {
     private final IssueRepository issueRepository;
     private final IssueTagRepository issueTagRepository;
@@ -54,19 +56,17 @@ public class IssueServiceImpl implements IssueService {
                 .status(issueCreateRequest.getStatus())
                 .build();
 
-        if(issueRepository.createIssue(requestIssue) == 0){
+         if(issueRepository.createIssue(requestIssue) == 0){
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
 
-        Long lastIssueId = issueRepository.findLastInsertedId();
-
         for(Long tagId : issueCreateRequest.getTagIds()){
-            if(issueTagRepository.insertIssueTag(lastIssueId, tagId) == 0){
+            if(issueTagRepository.insertIssueTag(requestIssue.getId(), tagId) == 0){
                 throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
             }
         }
 
-        return issueRepository.findById(lastIssueId)
+        return issueRepository.findById(requestIssue.getId())
                 .orElseThrow(() -> new NotFoundException(ExceptionMessage.DATA_NOT_FOUND));
     }
 
