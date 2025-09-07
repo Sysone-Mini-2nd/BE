@@ -1,17 +1,13 @@
 package com.sys.stm.global.common.entity;
 
-import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 
 @Getter
-@Service
-public abstract class BaseEntity {
+public class BaseEntity {
 
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -23,7 +19,6 @@ public abstract class BaseEntity {
         this.updatedAt = Timestamp.valueOf(LocalDateTime.now());
         this.isDeleted = 0;
     }
-
     // 수정 시 자동 호출할 메서드
     public void onUpdate() {
         this.updatedAt = Timestamp.valueOf(LocalDateTime.now());
