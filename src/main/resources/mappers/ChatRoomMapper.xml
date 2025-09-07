@@ -37,4 +37,13 @@
         </if>
     </select>
 
+    <insert id="createChatRoom"
+            parameterType="com.sys.stm.domains.messenger.domain.ChatRoom">
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            SELECT "SEQ_CHAT_ROOM"."NEXTVAL" FROM DUAL
+        </selectKey>
+        INSERT INTO "chat_room"("id","name", "type", "created_at", "updated_at")
+        values(#{id},#{name},#{type},#{createdAt},#{updatedAt})
+    </insert>
+
 </mapper>
