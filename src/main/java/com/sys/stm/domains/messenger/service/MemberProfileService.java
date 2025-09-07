@@ -19,4 +19,13 @@ public class MemberProfileService {
         return memberProfileMapper.findMemberProfileById(id);
     }
 
+    public List<MemberProfileResponseDto> findAllMemberProfiles() {
+        return memberProfileMapper.findAllMemberProfiles();
+    }
+
+    public List<MemberProfileResponseDto> findMemberProfilesByEmailOrName(String keyword) {
+        // 와일드카드 삽입
+        keyword = '%' + keyword + '%';
+        return memberProfileMapper.findMemberProfilesByEmailOrName(keyword);
+    }
 }
