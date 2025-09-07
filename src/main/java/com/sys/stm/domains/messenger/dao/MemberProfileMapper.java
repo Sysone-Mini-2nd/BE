@@ -11,4 +11,7 @@ public interface MemberProfileMapper {
 
     MemberProfileResponseDto findMemberProfileById(@Param("id") long id);
 
+    List<MemberProfileResponseDto> findAllMemberProfiles();
+
+    List<MemberProfileResponseDto> findMemberProfilesByEmailOrName(@Param("keyword") String keyword);
 }

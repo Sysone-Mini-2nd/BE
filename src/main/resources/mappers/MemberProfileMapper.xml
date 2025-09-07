@@ -10,4 +10,17 @@
         WHERE "id" = #{id}
     </select>
 
+    <select id="findAllMemberProfiles"
+            resultType="com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto">
+        SELECT "id","name","position","email","pic_url"
+        FROM "member"
+    </select>
+
+    <select id="findMemberProfilesByEmailOrName"
+            resultType="com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto">
+        SELECT "id","name","position","email","pic_url"
+        FROM "member"
+        WHERE "name" LIKE #{keyword} OR "email" LIKE #{keyword}
+    </select>
+
 </mapper>
