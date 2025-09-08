@@ -1,6 +1,6 @@
 package com.sys.stm.domains.meeting.domain;
 
-import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequest;
+import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.*;
 
@@ -23,11 +23,12 @@ public class Meeting extends BaseEntity {
     private Timestamp progressDate;     // 회의 진행시간
     private String place;               // 회의 장소
 
+
     // Participant와의 관계 (1:N)
     private List<MeetingParticipant> participants;
 
     // 생성자에서 BaseEntity 초기화
-    public Meeting(MeetingCreateRequest request, Long projectId, Long memberId, String content) {
+    public Meeting(MeetingCreateRequestDTO request, Long projectId, Long memberId, String content) {
         this.projectId = projectId;
         this.title = request.getTitle();
         this.content = content;

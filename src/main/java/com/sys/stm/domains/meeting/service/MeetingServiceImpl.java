@@ -3,14 +3,16 @@ package com.sys.stm.domains.meeting.service;
 import com.sys.stm.domains.meeting.dao.MeetingRepository;
 import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
-import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequest;
+import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
+import com.sys.stm.domains.meeting.dto.response.MeetingDetailResponseDTO;
+import com.sys.stm.domains.meeting.dto.response.MeetingParticipantResponseDTO;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final NaverApiService naverApiService;
 
     @Override
-    public void createMeeting(MeetingCreateRequest request, MultipartFile audioFile, Long memberId) {
+    public void createMeeting(MeetingCreateRequestDTO request, MultipartFile audioFile, Long memberId) {
 
         // TODO :: Member, Project 연동시 연결
         Long projectId = 1L;
@@ -57,13 +59,38 @@ public class MeetingServiceImpl implements MeetingService {
         }
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Meeting getMeetingWithParticipants(Long meetingId) {
-        return null;
+    public MeetingDetailResponseDTO getMeetingWithParticipants(Long meetingId) {
+        // ResultMap을 사용한 단일 쿼리로 조회
+
+        Meeting meeting = meetingRepository.findByIdWithParticipants(meetingId)
+                .orElseThrow(() -> new NotFoundException(ExceptionMessage.MEETING_NOT_FOUND));
+
+        // TODO :: 이름 부분 유저 연동되면 수정
+        List<MeetingParticipantResponseDTO> participantResponse = meeting.getParticipants().stream()
+                .map(participant -> MeetingParticipantResponseDTO.builder()
+                        .id(participant.getId())
+                        .name("test")
+                        .build())
+                .toList();
+
+
+        MeetingDetailResponseDTO response = MeetingDetailResponseDTO.builder()
+                .title(meeting.getTitle())
+                .progressDate(meeting.getProgressDate())
+                .participants(participantResponse)
+                .writerName("작성자 Test")
+                .place(meeting.getPlace())
+                .content(meeting.getContent())
+                .build();
+
+        return response;
     }
 
+
     @Override
-    public Long createMeetingWithParticipants(MeetingCreateRequest request, Long projectId, Long memberId, List<Long> participantMemberIds) {
+    public Long createMeetingWithParticipants(MeetingCreateRequestDTO request, Long projectId, Long memberId, List<Long> participantMemberIds) {
         return 0L;
     }
 }

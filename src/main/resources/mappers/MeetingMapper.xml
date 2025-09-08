@@ -3,6 +3,31 @@
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.meeting.dao.MeetingRepository">
 
+	<!-- ResultMap 정의 -->
+	<resultMap id="MeetingWithParticipantsMap" type="com.sys.stm.domains.meeting.domain.Meeting">
+		<id property="id" column="meeting_id"/>
+		<result property="projectId" column="project_id"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="memberId" column="member_id"/>
+		<result property="type" column="type"/>
+		<result property="progressDate" column="progress_date"/>
+		<result property="place" column="place"/>
+		<result property="createdAt" column="created_at"/>
+		<result property="updatedAt" column="updated_at"/>
+		<result property="isDeleted" column="is_deleted"/>
+
+		<!-- 참석자 목록 (1:N 관계) -->
+		<collection property="participants" ofType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
+			<id property="id" column="participant_id"/>
+			<result property="meetingId" column="meeting_id"/>
+			<result property="memberId" column="participant_member_id"/>
+			<result property="createdAt" column="participant_created_at"/>
+			<result property="updatedAt" column="participant_updated_at"/>
+			<result property="isDeleted" column="participant_is_deleted"/>
+		</collection>
+	</resultMap>
+
 	<!-- 회의 생성 -->
 	<insert id="createMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">
 		<selectKey keyProperty="id" resultType="long" order="BEFORE">
@@ -13,6 +38,33 @@
 			#{id}, #{projectId}, #{title}, #{content}, #{memberId}, #{type}, #{progressDate}, #{place}, #{createdAt}, #{updatedAt}, #{isDeleted}
 		)
 	</insert>
+
+
+	<!-- 회의와 참석자 함께 조회 (ID로) -->
+	<select id="findByIdWithParticipants" parameterType="long" resultMap="MeetingWithParticipantsMap">
+		SELECT
+			m."id" as meeting_id,
+			m."project_id",
+			m."title",
+			m."content",
+			m."member_id",
+			m."type",
+			m."progress_date",
+			m."place",
+			m."created_at",
+			m."updated_at",
+			m."is_deleted",
+			mp."id" as participant_id,
+			mp."meeting_id",
+			mp."member_id" as participant_member_id,
+			mp."created_at" as participant_created_at,
+			mp."updated_at" as participant_updated_at,
+			mp."is_deleted" as participant_is_deleted
+		FROM "meeting" m
+				 LEFT JOIN "meeting_participant" mp ON m."id" = mp."meeting_id" AND mp."is_deleted" = 0
+		WHERE m."id" = #{id} AND m."is_deleted" = 0
+		ORDER BY mp."created_at" ASC
+	</select>
 
 <!--	&lt;!&ndash; 회의 조회 (ID로) &ndash;&gt;-->
 <!--	<select id="findById" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.Meeting">-->

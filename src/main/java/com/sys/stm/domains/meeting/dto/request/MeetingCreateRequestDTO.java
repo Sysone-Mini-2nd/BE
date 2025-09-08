@@ -1,17 +1,14 @@
 package com.sys.stm.domains.meeting.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingType;
-import lombok.Builder;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.util.List;
 
 @Data
-public class MeetingCreateRequest{
+public class MeetingCreateRequestDTO {
     private String title;           // 회의록 제목
     private String content;         // 회의록 내용
     @JsonFormat(shape = JsonFormat.Shape.STRING)
