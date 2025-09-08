@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.comment.dao.CommentRepository">
+    <resultMap id="CommentDetailResponseMap" type="com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO">
+        <id property="id" column="id"/>
+        <result property="issueId" column="issueId"/>
+        <result property="parentId" column="parentId"/>
+        <result property="content" column="content"/>
+        <result property="memberId" column="memberId"/>
+        <result property="memberName" column="memberName"/>
+        <result property="picUrl" column="picUrl"/>
+    </resultMap>
+
+    <!-- 댓글 단건 조회 -->
+    <select id="findCommentById" resultMap="CommentDetailResponseMap">
+        SELECT
+            c."id" AS id,
+            c."issue_id" AS issueId,
+            c."parent_id" AS parentId,
+            c."content" AS content,
+            m."id" AS memberId,
+            m."name" AS memberName,
+            m."pic_url" AS picUrl
+        FROM "comment" c
+                 JOIN "member" m ON c."member_id" = m."id"
+        WHERE c."id" = #{commentId}
+    </select>
+
+    <!-- 이슈 댓글 조회 -->
+    <select id="findCommentsByIssueId" resultMap="CommentDetailResponseMap">
+        SELECT
+            c."id" AS id,
+            c."issue_id" AS issueId,
+            c."parent_id" AS parentId,
+            c."content" AS content,
+            m."id" AS memberId,
+            m."name" AS memberName,
+            m."pic_url" AS picUrl
+        FROM "comment" c
+                 JOIN "member" m ON c."member_id" = m."id"
+        WHERE c."issue_id" = #{issueId}
+                AND c."is_deleted" = 0
+        ORDER BY c."id" ASC
+    </select>
+
+    <!-- 댓글 생성 -->
+    <insert id="createComment" parameterType="com.sys.stm.domains.comment.domain.Comment">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SEQ_COMMENT.CURRVAL FROM dual
+        </selectKey>
+        INSERT INTO "comment"(
+            "issue_id", "parent_id", "content", "member_id",
+            "created_at", "updated_at", "is_deleted"
+        )
+        VALUES (
+                   #{issueId}, #{parentId, jdbcType=NUMERIC}, #{content}, #{memberId},
+                   #{createdAt}, #{updatedAt}, #{isDeleted}
+               )
+    </insert>
+
+    <!-- 댓글 내용 변경 -->
+    <update id="updateCommentContent" parameterType="com.sys.stm.domains.comment.domain.Comment">
+        UPDATE "comment"
+        SET
+            "content" = #{content},
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+
+    <!-- 댓글 삭제 -->
+    <update id="deleteCommentById" parameterType="com.sys.stm.domains.comment.domain.Comment">
+        UPDATE "comment"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+</mapper>
