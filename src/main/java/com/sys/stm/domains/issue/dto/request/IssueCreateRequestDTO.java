@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IssueCreateRequest {
+public class IssueCreateRequestDTO {
     private String title; // 제목
     private String desc; // 설명
     private Long memberId; // 담당자 (pk)

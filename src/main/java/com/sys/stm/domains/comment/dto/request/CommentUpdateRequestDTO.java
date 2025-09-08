@@ -1,6 +1,5 @@
-package com.sys.stm.domains.issue.dto.response;
+package com.sys.stm.domains.comment.dto.request;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IssueListResponse {
-    private List<IssueSummaryResponse> issues;
+public class CommentUpdateRequestDTO {
+    String content;
 }

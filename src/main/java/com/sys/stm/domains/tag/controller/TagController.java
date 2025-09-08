@@ -1,6 +1,6 @@
 package com.sys.stm.domains.tag.controller;
 
-import com.sys.stm.domains.tag.dto.response.TagDetailResponse;
+import com.sys.stm.domains.tag.dto.response.TagDetailResponseDTO;
 import com.sys.stm.domains.tag.service.TagService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class TagController {
     private final TagService tagService;
 
     @GetMapping("tags")
-    public ApiResponse<List<TagDetailResponse>> getTags() {
+    public ApiResponse<List<TagDetailResponseDTO>> getTags() {
         return ApiResponse.ok(tagService.getTags());
     }
 }

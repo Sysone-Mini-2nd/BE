@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IssueListRequest {
+public class IssueListRequestDTO {
     private String priority;   // 우선순위
     private Long memberId;   // 담당자
     private String status;     // 상태

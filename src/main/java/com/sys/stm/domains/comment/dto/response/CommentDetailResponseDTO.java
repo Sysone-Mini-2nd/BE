@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDetailResponse {
+public class CommentDetailResponseDTO {
     private Long id;
     private Long issueId;
     private Long parentId;
@@ -19,5 +19,5 @@ public class CommentDetailResponse {
     private Long memberId;
     private String memberName;
     private String picUrl;
-    private List<CommentDetailResponse> children = new ArrayList<>();
+    private List<CommentDetailResponseDTO> children = new ArrayList<>();
 }

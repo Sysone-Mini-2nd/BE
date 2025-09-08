@@ -2,9 +2,9 @@ package com.sys.stm.domains.comment.service;
 
 import com.sys.stm.domains.comment.dao.CommentRepository;
 import com.sys.stm.domains.comment.domain.Comment;
-import com.sys.stm.domains.comment.dto.request.CommentCreateRequest;
-import com.sys.stm.domains.comment.dto.request.CommentUpdateRequest;
-import com.sys.stm.domains.comment.dto.response.CommentDetailResponse;
+import com.sys.stm.domains.comment.dto.request.CommentCreateRequestDTO;
+import com.sys.stm.domains.comment.dto.request.CommentUpdateRequestDTO;
+import com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import java.util.ArrayList;
@@ -22,23 +22,23 @@ public class CommentServiceImpl implements CommentService{
     private final CommentRepository commentRepository;
 
     @Override
-    public List<CommentDetailResponse> getCommentsByIssueId(Long issueId) {
-        List<CommentDetailResponse> comments = commentRepository.findCommentsByIssueId(issueId);
+    public List<CommentDetailResponseDTO> getCommentsByIssueId(Long issueId) {
+        List<CommentDetailResponseDTO> comments = commentRepository.findCommentsByIssueId(issueId);
 
         // ID -> 댓글 매핑
-        Map<Long, CommentDetailResponse> commentMap = new HashMap<>();
-        List<CommentDetailResponse> roots = new ArrayList<>();
+        Map<Long, CommentDetailResponseDTO> commentMap = new HashMap<>();
+        List<CommentDetailResponseDTO> roots = new ArrayList<>();
 
-        for (CommentDetailResponse comment : comments) {
+        for (CommentDetailResponseDTO comment : comments) {
             comment.setChildren(new ArrayList<>());
             commentMap.put(comment.getId(), comment);
         }
 
-        for (CommentDetailResponse comment : comments) {
+        for (CommentDetailResponseDTO comment : comments) {
             if (comment.getParentId() == null) {
                 roots.add(comment); // 부모 댓글
             } else {
-                CommentDetailResponse parent = commentMap.get(comment.getParentId());
+                CommentDetailResponseDTO parent = commentMap.get(comment.getParentId());
                 if (parent != null) {
                     parent.getChildren().add(comment); // 부모의 children에 추가
                 }
@@ -49,12 +49,12 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public CommentDetailResponse createIssueComment(Long issueId, CommentCreateRequest commentCreateRequest){
+    public CommentDetailResponseDTO createIssueComment(Long issueId, CommentCreateRequestDTO commentCreateRequestDTO){
         Comment requestComment = Comment.builder()
                 .issueId(issueId)
-                .content(commentCreateRequest.getContent())
-                .parentId(commentCreateRequest.getParentId())
-                .memberId(commentCreateRequest.getMemberId())
+                .content(commentCreateRequestDTO.getContent())
+                .parentId(commentCreateRequestDTO.getParentId())
+                .memberId(commentCreateRequestDTO.getMemberId())
                 .build();
 
         if(commentRepository.createComment(requestComment) == 0){
@@ -65,10 +65,10 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public CommentDetailResponse updateCommentContent(Long commentId, CommentUpdateRequest commentUpdateRequest) {
+    public CommentDetailResponseDTO updateCommentContent(Long commentId, CommentUpdateRequestDTO commentUpdateRequestDTO) {
         Comment requestComment = Comment.builder()
                 .id(commentId)
-                .content(commentUpdateRequest.getContent())
+                .content(commentUpdateRequestDTO.getContent())
                 .build();
 
         if(commentRepository.updateCommentContent(requestComment) == 0){

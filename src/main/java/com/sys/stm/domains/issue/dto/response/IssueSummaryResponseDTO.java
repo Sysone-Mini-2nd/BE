@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IssueSummaryResponse {
+public class IssueSummaryResponseDTO {
     private Long id; // 이슈 PK
     private String title; // 이슈 제목
     private String desc; // 이슈 설명

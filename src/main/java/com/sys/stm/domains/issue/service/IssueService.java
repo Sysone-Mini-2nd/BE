@@ -1,16 +1,16 @@
 package com.sys.stm.domains.issue.service;
 
-import com.sys.stm.domains.issue.dto.request.IssueCreateRequest;
-import com.sys.stm.domains.issue.dto.request.IssueListRequest;
-import com.sys.stm.domains.issue.dto.request.IssuePatchRequest;
-import com.sys.stm.domains.issue.dto.request.IssueUpdateRequest;
-import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
-import com.sys.stm.domains.issue.dto.response.IssueListResponse;
+import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
+import com.sys.stm.domains.issue.dto.request.IssueListRequestDTO;
+import com.sys.stm.domains.issue.dto.request.IssuePatchRequestDTO;
+import com.sys.stm.domains.issue.dto.request.IssueUpdateRequestDTO;
+import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
+import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 
 public interface IssueService {
-    IssueDetailResponse getIssue(Long issueId);
-    IssueListResponse getProjectIssues(Long projectId, IssueListRequest issueListRequest);
-    IssueDetailResponse createProjectIssue(Long projectId, IssueCreateRequest issueCreateRequest);
-    IssueDetailResponse updateIssueStatus(Long issueId, IssuePatchRequest issuePatchRequest);
-    IssueDetailResponse updateIssue(Long issueId, IssueUpdateRequest issueUpdateRequest);
+    IssueDetailResponseDTO getIssue(Long issueId);
+    IssueListResponseDTO getProjectIssues(Long projectId, IssueListRequestDTO issueListRequestDTO);
+    IssueDetailResponseDTO createProjectIssue(Long projectId, IssueCreateRequestDTO issueCreateRequestDTO);
+    IssueDetailResponseDTO updateIssueStatus(Long issueId, IssuePatchRequestDTO issuePatchRequestDTO);
+    IssueDetailResponseDTO updateIssue(Long issueId, IssueUpdateRequestDTO issueUpdateRequestDTO);
 }

@@ -1,5 +1,6 @@
-package com.sys.stm.domains.tag.dto.response;
+package com.sys.stm.domains.issue.dto.response;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TagDetailResponse {
-    private Long id;
-    private String name;
+public class IssueListResponseDTO {
+    private List<IssueSummaryResponseDTO> issues;
 }

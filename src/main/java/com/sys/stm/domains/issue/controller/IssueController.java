@@ -1,11 +1,11 @@
 package com.sys.stm.domains.issue.controller;
 
-import com.sys.stm.domains.comment.dto.request.CommentCreateRequest;
-import com.sys.stm.domains.comment.dto.response.CommentDetailResponse;
+import com.sys.stm.domains.comment.dto.request.CommentCreateRequestDTO;
+import com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO;
 import com.sys.stm.domains.comment.service.CommentService;
-import com.sys.stm.domains.issue.dto.request.IssuePatchRequest;
-import com.sys.stm.domains.issue.dto.request.IssueUpdateRequest;
-import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
+import com.sys.stm.domains.issue.dto.request.IssuePatchRequestDTO;
+import com.sys.stm.domains.issue.dto.request.IssueUpdateRequestDTO;
+import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.global.common.response.ApiResponse;
 import java.util.List;
@@ -27,36 +27,36 @@ public class IssueController {
     private final CommentService commentService;
 
     @GetMapping("issues/{issueId}")
-    public ApiResponse<IssueDetailResponse> getIssue(@PathVariable Long issueId) {
+    public ApiResponse<IssueDetailResponseDTO> getIssue(@PathVariable Long issueId) {
         return ApiResponse.ok(issueService.getIssue(issueId));
     }
 
     @PatchMapping("issues/{issueId}")
-    public ApiResponse<IssueDetailResponse> patchIssue(
+    public ApiResponse<IssueDetailResponseDTO> patchIssue(
             @PathVariable Long issueId,
-            @RequestBody IssuePatchRequest issuePatchRequest
+            @RequestBody IssuePatchRequestDTO issuePatchRequestDTO
     ) {
-        return ApiResponse.ok(issueService.updateIssueStatus(issueId, issuePatchRequest));
+        return ApiResponse.ok(issueService.updateIssueStatus(issueId, issuePatchRequestDTO));
     }
 
     @PutMapping("issues/{issueId}")
-    public ApiResponse<IssueDetailResponse> updateIssue(
+    public ApiResponse<IssueDetailResponseDTO> updateIssue(
             @PathVariable Long issueId,
-            @RequestBody IssueUpdateRequest issueUpdateRequest
+            @RequestBody IssueUpdateRequestDTO issueUpdateRequestDTO
     ) {
-        return ApiResponse.ok(issueService.updateIssue(issueId, issueUpdateRequest));
+        return ApiResponse.ok(issueService.updateIssue(issueId, issueUpdateRequestDTO));
     }
 
     @GetMapping("issues/{issueId}/comments")
-    public ApiResponse<List<CommentDetailResponse>> getComments(@PathVariable Long issueId) {
+    public ApiResponse<List<CommentDetailResponseDTO>> getComments(@PathVariable Long issueId) {
         return ApiResponse.ok(commentService.getCommentsByIssueId(issueId));
     }
 
     @PostMapping("issues/{issueId}/comments")
-    public ApiResponse<CommentDetailResponse> createComment(
+    public ApiResponse<CommentDetailResponseDTO> createComment(
             @PathVariable Long issueId,
-            @RequestBody CommentCreateRequest commentCreateRequest
+            @RequestBody CommentCreateRequestDTO commentCreateRequestDTO
     ) {
-        return ApiResponse.ok(commentService.createIssueComment(issueId, commentCreateRequest));
+        return ApiResponse.ok(commentService.createIssueComment(issueId, commentCreateRequestDTO));
     }
 }

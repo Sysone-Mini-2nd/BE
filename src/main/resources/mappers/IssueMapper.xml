@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.issue.dao.IssueRepository">
     <!-- Detail 출력용 IssueDetailMap -->
-    <resultMap id="issueDetailMap" type="com.sys.stm.domains.issue.dto.response.IssueDetailResponse">
+    <resultMap id="issueDetailMap" type="com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO">
         <id property="id" column="id"/>
         <result property="projectId" column="project_id"/>
         <result property="memberId" column="member_id"/>
@@ -23,7 +23,7 @@
     </resultMap>
 
     <!-- List 출력용 IssueSummaryMap -->
-    <resultMap id="issueSummaryMap" type="com.sys.stm.domains.issue.dto.response.IssueSummaryResponse">
+    <resultMap id="issueSummaryMap" type="com.sys.stm.domains.issue.dto.response.IssueSummaryResponseDTO">
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="desc" column="desc"/>
@@ -60,7 +60,7 @@
     </select>
 
     <!-- 목록 조회 -->
-    <select id="findAllFilteredSummary" resultMap="issueSummaryMap" parameterType="com.sys.stm.domains.issue.dto.request.IssueListRequest">
+    <select id="findAllFilteredSummary" resultMap="issueSummaryMap" parameterType="com.sys.stm.domains.issue.dto.request.IssueListRequestDTO">
         SELECT
             i."id",
             i."title",
@@ -76,19 +76,19 @@
             LEFT JOIN "member" m ON i."member_id" = m."id"
         WHERE i."is_deleted" = 0
             AND i."project_id" = #{projectId}
-            <if test="issueListRequest.priority != null">
-                AND i."priority" = #{issueListRequest.priority}
+            <if test="issueListRequestDTO.priority != null">
+                AND i."priority" = #{issueListRequestDTO.priority}
             </if>
-            <if test="issueListRequest.memberId != null">
-                AND i."member_id" = #{issueListRequest.memberId}
+            <if test="issueListRequestDTO.memberId != null">
+                AND i."member_id" = #{issueListRequestDTO.memberId}
             </if>
-            <if test="issueListRequest.status != null">
-                AND i."status" = #{issueListRequest.status}
+            <if test="issueListRequestDTO.status != null">
+                AND i."status" = #{issueListRequestDTO.status}
             </if>
-            <if test="issueListRequest.search != null and issueListRequest.search != ''">
+            <if test="issueListRequestDTO.search != null and issueListRequestDTO.search != ''">
                 AND (
-                LOWER(i."title") LIKE '%' || LOWER(#{issueListRequest.search}) || '%'
-                OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequest.search}) || '%'
+                LOWER(i."title") LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
+                OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
                 )
             </if>
     </select>

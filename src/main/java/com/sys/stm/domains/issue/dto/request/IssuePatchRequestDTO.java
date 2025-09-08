@@ -1,5 +1,6 @@
-package com.sys.stm.domains.comment.dto.request;
+package com.sys.stm.domains.issue.dto.request;
 
+import com.sys.stm.domains.issue.domain.IssueStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentUpdateRequest {
-    String content;
+public class IssuePatchRequestDTO {
+    private IssueStatus status;
 }

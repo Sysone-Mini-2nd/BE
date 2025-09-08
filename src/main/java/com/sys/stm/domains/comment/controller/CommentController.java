@@ -1,7 +1,7 @@
 package com.sys.stm.domains.comment.controller;
 
-import com.sys.stm.domains.comment.dto.request.CommentUpdateRequest;
-import com.sys.stm.domains.comment.dto.response.CommentDetailResponse;
+import com.sys.stm.domains.comment.dto.request.CommentUpdateRequestDTO;
+import com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO;
 import com.sys.stm.domains.comment.service.CommentService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +19,11 @@ public class CommentController {
     private final CommentService commentService;
 
     @PatchMapping("comment/{commentId}")
-    public ApiResponse<CommentDetailResponse> patchComment(
+    public ApiResponse<CommentDetailResponseDTO> patchComment(
             @PathVariable Long commentId,
-            @RequestBody CommentUpdateRequest commentUpdateRequest
+            @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO
             ) {
-        return ApiResponse.ok(commentService.updateCommentContent(commentId, commentUpdateRequest));
+        return ApiResponse.ok(commentService.updateCommentContent(commentId, commentUpdateRequestDTO));
     }
 
     @DeleteMapping("comment/{commentId}")

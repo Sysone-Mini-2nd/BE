@@ -1,9 +1,9 @@
 package com.sys.stm.domains.project;
 
-import com.sys.stm.domains.issue.dto.request.IssueCreateRequest;
-import com.sys.stm.domains.issue.dto.request.IssueListRequest;
-import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
-import com.sys.stm.domains.issue.dto.response.IssueListResponse;
+import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
+import com.sys.stm.domains.issue.dto.request.IssueListRequestDTO;
+import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
+import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +21,18 @@ public class ProjectController {
     private final IssueService issueService;
 
     @GetMapping("projects/{projectId}/issues")
-    public ApiResponse<IssueListResponse> getIssuesByProjectId(
+    public ApiResponse<IssueListResponseDTO> getIssuesByProjectId(
             @PathVariable Long projectId,
-            IssueListRequest issueListRequest
+            IssueListRequestDTO issueListRequestDTO
     ) {
-        return ApiResponse.ok(issueService.getProjectIssues(projectId, issueListRequest));
+        return ApiResponse.ok(issueService.getProjectIssues(projectId, issueListRequestDTO));
     }
 
     @PostMapping("projects/{projectId}/issues")
-    public ApiResponse<IssueDetailResponse> createIssueByProjectId(
+    public ApiResponse<IssueDetailResponseDTO> createIssueByProjectId(
             @PathVariable Long projectId,
-            @RequestBody IssueCreateRequest issueCreateRequest
+            @RequestBody IssueCreateRequestDTO issueCreateRequestDTO
     ) {
-        return ApiResponse.ok(issueService.createProjectIssue(projectId, issueCreateRequest));
+        return ApiResponse.ok(issueService.createProjectIssue(projectId, issueCreateRequestDTO));
     }
 }

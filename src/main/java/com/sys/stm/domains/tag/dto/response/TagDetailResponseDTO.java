@@ -1,4 +1,4 @@
-package com.sys.stm.domains.comment.dto.request;
+package com.sys.stm.domains.tag.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentCreateRequest {
-    private Long memberId;
-    private Long parentId;
-    private String content;
+public class TagDetailResponseDTO {
+    private Long id;
+    private String name;
 }
