@@ -43,7 +43,16 @@
             SELECT "SEQ_CHAT_ROOM"."NEXTVAL" FROM DUAL
         </selectKey>
         INSERT INTO "chat_room"("id","name", "type", "created_at", "updated_at")
-        values(#{id},#{name},#{type},#{createdAt},#{updatedAt})
+        VALUES(#{id},#{name},#{type},#{createdAt},#{updatedAt})
     </insert>
+
+    <update id="updateChatRoom">
+        UPDATE "chat_room"
+        <set>
+            <if test="dto.name != null">"name" = #{dto.name},</if>
+            <if test="dto.recentMessage != null">"recent_message" = #{dto.recentMessage},</if>
+        </set>
+        WHERE "id" = #{id}
+    </update>
 
 </mapper>

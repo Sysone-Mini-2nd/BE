@@ -23,4 +23,15 @@
         WHERE "name" LIKE #{keyword} OR "email" LIKE #{keyword}
     </select>
 
+    <update id="updateMemberProfile">
+        UPDATE "member"
+            <set>
+                <if test="dto.name != null"> "name" = #{dto.name}, </if>
+                <if test="dto.email != null"> "email" = #{dto.email}, </if>
+                <if test="dto.position != null"> "position" = #{dto.position}, </if>
+                <if test="dto.picUrl != null"> "pic_url" = #{dto.picUrl}, </if>
+            </set>
+            WHERE "id" = #{id}
+    </update>
+
 </mapper>
