@@ -27,10 +27,10 @@ public class Meeting extends BaseEntity {
     private List<MeetingParticipant> participants;
 
     // 생성자에서 BaseEntity 초기화
-    public Meeting(MeetingCreateRequest request, Long projectId, Long memberId) {
+    public Meeting(MeetingCreateRequest request, Long projectId, Long memberId, String content) {
         this.projectId = projectId;
         this.title = request.getTitle();
-        this.content = request.getContent();
+        this.content = content;
         this.memberId = memberId;
         this.type = request.getType().toString();
         this.progressDate = request.getProgressDate();
