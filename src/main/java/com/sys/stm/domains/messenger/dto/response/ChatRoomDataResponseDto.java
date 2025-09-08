@@ -12,7 +12,7 @@ public class ChatRoomDataResponseDto {
     private Long id;
     private String name;
     private String recentMessage;
-    private List<String> memberIdList;
+    private List<String> memberNameList;
     private long unreadMessageCount;
 
 }

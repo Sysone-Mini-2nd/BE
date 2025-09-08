@@ -57,7 +57,7 @@ public class ChatRoomService {
                             .id(roomInfo.getId())
                             .recentMessage(roomInfo.getRecentMessage())
                             .unreadMessageCount(roomInfo.getUnreadMessageCount())
-                            .memberIdList(participantsMap.get(roomInfo.getId()))
+                            .memberNameList(participantsMap.get(roomInfo.getId()))
                             .build();
 
                 })
