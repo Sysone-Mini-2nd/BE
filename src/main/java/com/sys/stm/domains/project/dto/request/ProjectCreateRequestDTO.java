@@ -1,0 +1,22 @@
+package com.sys.stm.domains.project.dto.request;
+
+import com.sys.stm.domains.project.domain.ProjectPriority;
+import com.sys.stm.domains.project.domain.ProjectStatus;
+import java.sql.Timestamp;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProjectCreateRequestDTO {
+    private String name;
+    private String desc;
+    private ProjectStatus status;
+    private ProjectPriority priority;
+    private Timestamp startDate;
+    private Timestamp endDate;
+}
