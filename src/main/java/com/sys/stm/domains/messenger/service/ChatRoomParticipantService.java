@@ -26,4 +26,8 @@ public class ChatRoomParticipantService {
         return result;
     }
 
+    public int deleteFromChatRoom(long id, long memberId) {
+        // 채팅방 참여 인원 테이블에서 해당 사원 삭제
+        return chatRoomParticipantMapper.deleteFromChatRoom(id, memberId);
+    }
 }
