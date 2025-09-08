@@ -3,12 +3,9 @@ package com.sys.stm.domains.issue.controller;
 import com.sys.stm.domains.comment.dto.request.CommentCreateRequest;
 import com.sys.stm.domains.comment.dto.response.CommentDetailResponse;
 import com.sys.stm.domains.comment.service.CommentService;
-import com.sys.stm.domains.issue.dto.request.IssueCreateRequest;
-import com.sys.stm.domains.issue.dto.request.IssueListRequest;
 import com.sys.stm.domains.issue.dto.request.IssuePatchRequest;
 import com.sys.stm.domains.issue.dto.request.IssueUpdateRequest;
 import com.sys.stm.domains.issue.dto.response.IssueDetailResponse;
-import com.sys.stm.domains.issue.dto.response.IssueListResponse;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.global.common.response.ApiResponse;
 import java.util.List;
@@ -34,22 +31,6 @@ public class IssueController {
         return ApiResponse.ok(issueService.getIssue(issueId));
     }
 
-    @GetMapping("projects/{projectId}/issues")
-    public ApiResponse<IssueListResponse> getIssuesByProjectId(
-            @PathVariable Long projectId,
-            IssueListRequest issueListRequest
-    ) {
-        return ApiResponse.ok(issueService.getProjectIssues(projectId, issueListRequest));
-    }
-
-    @PostMapping("projects/{projectId}/issues")
-    public ApiResponse<IssueDetailResponse> createIssue(
-            @PathVariable Long projectId,
-            @RequestBody IssueCreateRequest issueCreateRequest
-    ) {
-        return ApiResponse.ok(issueService.createProjectIssue(projectId, issueCreateRequest));
-    }
-
     @PatchMapping("issues/{issueId}")
     public ApiResponse<IssueDetailResponse> patchIssue(
             @PathVariable Long issueId,
@@ -72,7 +53,7 @@ public class IssueController {
     }
 
     @PostMapping("issues/{issueId}/comments")
-    public ApiResponse<CommentDetailResponse> getComments(
+    public ApiResponse<CommentDetailResponse> createComment(
             @PathVariable Long issueId,
             @RequestBody CommentCreateRequest commentCreateRequest
     ) {

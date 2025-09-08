@@ -9,4 +9,6 @@ public interface CommentService {
     List<CommentDetailResponse> getCommentsByIssueId(Long issueId);
     CommentDetailResponse createIssueComment(Long issueId, CommentCreateRequest commentCreateRequest);
     CommentDetailResponse updateCommentContent(Long commentId, CommentUpdateRequest commentUpdateRequest);
+    void deleteComment(Long commentId);
+
 }

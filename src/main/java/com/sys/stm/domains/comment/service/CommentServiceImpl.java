@@ -77,4 +77,15 @@ public class CommentServiceImpl implements CommentService{
 
         return commentRepository.findCommentById(requestComment.getId());
     }
+
+    @Override
+    public void deleteComment(Long commentId) {
+        Comment requestComment = Comment.builder()
+                .id(commentId)
+                .build();
+
+        if(commentRepository.deleteCommentById(requestComment) == 0){
+            throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
+        }
+    }
 }

@@ -18,4 +18,7 @@ public interface CommentRepository {
 
     // 댓글 수정
     int updateCommentContent(Comment comment);
+
+    // 댓글 삭제
+    int deleteCommentById(Comment comment);
 }
