@@ -28,6 +28,7 @@
             p."updated_at",
             p."is_deleted"
         FROM "project" p
+        WHERE p."id" = #{projectId} AND p."is_deleted" = 0
     </select>
 
     <select id="findAllByMemberId" parameterType="long" resultMap="projectResultMap">
@@ -50,15 +51,15 @@
             SELECT SEQ_PROJECT.CURRVAL FROM dual
         </selectKey>
         INSERT INTO "project"(
-        "name", "desc", "status"
+        "name", "desc", "status",
         "priority", "start_date", "end_date",
         "created_at", "updated_at", "is_deleted"
         )
         VALUES (
-        #{name}, #{desc}, #{status}
+        #{name}, #{desc}, #{status},
         #{priority} , #{startDate}, #{endDate},
         #{createdAt}, #{updatedAt}, #{isDeleted}
-        );
+        )
     </insert>
 
     <!-- 프로젝트 변경 -->

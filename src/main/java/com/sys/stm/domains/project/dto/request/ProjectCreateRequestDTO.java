@@ -3,6 +3,7 @@ package com.sys.stm.domains.project.dto.request;
 import com.sys.stm.domains.project.domain.ProjectPriority;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import java.sql.Timestamp;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,6 @@ public class ProjectCreateRequestDTO {
     private ProjectPriority priority;
     private Timestamp startDate;
     private Timestamp endDate;
+    private Long pmId;
+    private List<Long> memberIds;
 }

@@ -1,6 +1,8 @@
 package com.sys.stm.domains.project.service;
 
 import com.sys.stm.domains.assignedPerson.dao.AssignedPersonRepository;
+import com.sys.stm.domains.assignedPerson.domain.AssignedPerson;
+import com.sys.stm.domains.assignedPerson.domain.AssignedPersonRole;
 import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
@@ -16,10 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectServiceImpl implements ProjectService{
     private final ProjectRepository projectRepository;
     private final AssignedPersonRepository assignedPersonRepository;
@@ -102,7 +107,44 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
+    @Transactional
     public ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO) {
+        /*
+        * 1. 프로젝트 생성
+        * 2. 참여자에 insert
+        */
+        Project requestProject = Project.builder()
+                .name(projectCreateRequestDTO.getName())
+                .desc(projectCreateRequestDTO.getDesc())
+                .status(projectCreateRequestDTO.getStatus())
+                .priority(projectCreateRequestDTO.getPriority())
+                .startDate(projectCreateRequestDTO.getStartDate())
+                .endDate(projectCreateRequestDTO.getEndDate())
+                .build();
+
+        projectRepository.createProject(requestProject);
+
+        List<AssignedPerson> assignedPersons = new ArrayList<>();
+
+        for (Long memberId : projectCreateRequestDTO.getMemberIds()) {
+            assignedPersons.add(AssignedPerson.builder()
+                            .projectId(requestProject.getId())
+                            .memberId(memberId)
+                            .role(AssignedPersonRole.USER)
+                    .build());
+        }
+
+        assignedPersons.add(AssignedPerson.builder()
+                .projectId(requestProject.getId())
+                .memberId(projectCreateRequestDTO.getPmId())
+                .role(AssignedPersonRole.PM)
+                .build());
+
+        for(AssignedPerson assignedPerson : assignedPersons){
+            assignedPersonRepository.createAssignedPerson(assignedPerson);
+        }
+
+        // todo: 반환타입 처리, 요구사항 명세서 처리
         return null;
     }
 
