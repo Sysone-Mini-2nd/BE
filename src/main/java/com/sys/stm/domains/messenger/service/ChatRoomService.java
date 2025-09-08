@@ -1,7 +1,7 @@
 package com.sys.stm.domains.messenger.service;
 
-import com.sys.stm.domains.messenger.dao.ChatRoomMapper;
-import com.sys.stm.domains.messenger.dao.ChatRoomParticipantMapper;
+import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
+import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
@@ -23,12 +23,12 @@ import java.util.stream.Collectors;
 @Service
 public class ChatRoomService {
 
-    private final ChatRoomMapper chatRoomMapper;
-    private final ChatRoomParticipantMapper chatRoomParticipantMapper;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     public List<ChatRoomDataResponseDto> findAllChatRoomsDataById(long id) {
         // 사용자가 속한 채팅방의 기본 정보와 안 읽은 메시지 수를 가져온다.
-        List<ChatRoomInfoResponseDto> roomInfos = chatRoomMapper.findChatRoomsByMemberId(id);
+        List<ChatRoomInfoResponseDto> roomInfos = chatRoomRepository.findChatRoomsByMemberId(id);
 
         if (roomInfos.isEmpty()) {
             // 참여중인 채팅방이 없으면 빈 리스트 반환
@@ -41,7 +41,7 @@ public class ChatRoomService {
                 .toList();
 
         // 모든 채팅방의 참여자 정보를 한 번에 가져온다.
-        List<ParticipantInfoResponseDto> participants = chatRoomMapper.findParticipantsByRoomIds(roomIds);
+        List<ParticipantInfoResponseDto> participants = chatRoomRepository.findParticipantsByRoomIds(roomIds);
 
         // 4. 참여자 정보를 채팅방 ID별로 그룹핑한다. (Map<채팅방ID, List<참여자이름>>)
         Map<Long, List<String>> participantsMap = participants.stream()
@@ -65,7 +65,7 @@ public class ChatRoomService {
     }
 
     public int createChatRoom(ChatRoom chatRoom) {
-        return chatRoomMapper.createChatRoom(chatRoom);
+        return chatRoomRepository.createChatRoom(chatRoom);
     }
 
 
@@ -82,7 +82,7 @@ public class ChatRoomService {
 
         // TODO member테이블을 다루는 xml파일 및 member 테이블에서 id로 멤버 검색하는 sql문 만들어지면 교체
         for (Long memberId : chatRoomMemberIdList) {
-            int count = chatRoomParticipantMapper.findMemberByMemberId(memberId);
+            int count = chatRoomParticipantRepository.findMemberByMemberId(memberId);
 
             if (count != 1)
                 throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
@@ -92,6 +92,6 @@ public class ChatRoomService {
 
     public int updateChatRoom(long id, ChatRoomUpdateRequestDto dto) {
         // 채팅방 이름 혹은 최근 메시지 업데이트
-        return chatRoomMapper.updateChatRoom(id, dto);
+        return chatRoomRepository.updateChatRoom(id, dto);
     }
 }

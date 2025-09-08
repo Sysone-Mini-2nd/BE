@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface ChatRoomMapper {
+public interface ChatRoomRepository {
 
     List<ChatRoomInfoResponseDto> findChatRoomsByMemberId(@Param("memberId") Long memberId);
 

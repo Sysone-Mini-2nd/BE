@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface MemberProfileMapper {
+public interface MemberProfileRepository {
 
     MemberProfileResponseDto findMemberProfileById(@Param("id") long id);
 
