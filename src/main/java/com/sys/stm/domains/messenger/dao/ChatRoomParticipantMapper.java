@@ -15,4 +15,5 @@ public interface ChatRoomParticipantMapper {
 
     int findMemberByMemberId(@Param("memberId") long memberId);
 
+    int deleteFromChatRoom(@Param("id") long id, @Param("memberId") long memberId);
 }

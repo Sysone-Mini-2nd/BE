@@ -12,5 +12,10 @@
         FROM "member"
         WHERE "id" = #{id}
     </select>
+    <delete id="deleteFromChatRoom">
+        DELETE "chat_room_participants"
+        WHERE "member_id" = #{memberId}
+        AND "chat_room_id" = #{id}
+    </delete>
 </mapper>
 
