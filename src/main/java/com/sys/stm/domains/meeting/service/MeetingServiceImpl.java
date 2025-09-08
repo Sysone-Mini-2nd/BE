@@ -1,84 +1,69 @@
 package com.sys.stm.domains.meeting.service;
 
 import com.sys.stm.domains.meeting.dao.MeetingRepository;
+import com.sys.stm.domains.meeting.domain.Meeting;
+import com.sys.stm.domains.meeting.domain.MeetingParticipant;
+import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequest;
+import com.sys.stm.global.exception.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class BoardServiceImpl implements BoardService {
-
+@Transactional
+public class MeetingServiceImpl implements MeetingService {
     private final MeetingRepository meetingRepository;
-
-    // clientId
-    @Value("${cloud.naver.clover.client}")
-    private String clientId;
-
-    // clientSecret
-    @Value("${cloud.naver.clover.secret}")
-    private String clientSecret;
-
+    private final MeetingParticipantService meetingParticipantService;
+    private final NaverApiService naverApiService;
 
     @Override
-    public String testCount() {
+    public void createMeeting(MeetingCreateRequest request, MultipartFile audioFile, Long memberId) {
 
-        String clientId = "YOUR_CLIENT_ID";             // Application Client ID";
-        String clientSecret = "YOUR_CLIENT_SECRET";     // Application Client Secret";
+        // TODO :: Member, Project 연동시 연결
+        Long projectId = 1L;
 
-        try {
+        // 음성파일이 있으면 음성인식 후 content에 추가
+        String finalContent = request.getContent();
+        if (audioFile != null && !audioFile.isEmpty()) {
+            // 오디오파일 Text 변환
+            String audioSummary = naverApiService.processAudio(audioFile);
 
-            String imgFile = "음성 파일 경로";
-            File voiceFile = new File(imgFile);
-
-            String language = "Kor";        // 언어 코드 ( Kor, Jpn, Eng, Chn )
-            String apiURL = "https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=" + language;
-            URL url = new URL(apiURL);
-
-            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-            conn.setUseCaches(false);
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestProperty("Content-Type", "application/octet-stream");
-            conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", clientId);
-            conn.setRequestProperty("X-NCP-APIGW-API-KEY", clientSecret);
-
-            OutputStream outputStream = conn.getOutputStream();
-            FileInputStream inputStream = new FileInputStream(voiceFile);
-            byte[] buffer = new byte[4096];
-            int bytesRead = -1;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            outputStream.flush();
-            inputStream.close();
-            BufferedReader br = null;
-            int responseCode = conn.getResponseCode();
-            if(responseCode == 200) { // 정상 호출
-                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            } else {  // 오류 발생
-                System.out.println("error!!!!!!! responseCode= " + responseCode);
-                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            }
-            String inputLine;
-
-            if(br != null) {
-                StringBuffer response = new StringBuffer();
-                while ((inputLine = br.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                br.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("error !!!");
-            }
-        } catch (Exception e) {
-            System.out.println(e);
+            finalContent = (request.getContent() != null ? request.getContent() + "\n\n" : "") + "[음성인식 결과]\n" + audioSummary;
         }
 
+
+        // 회의록 저장
+        Meeting meeting = new Meeting(request, projectId, memberId, finalContent);
+        int meetingResult = meetingRepository.createMeeting(meeting);
+
+        if (meetingResult <= 0) {
+            throw new RuntimeException(ExceptionMessage.MEETING_RUNTIME_ERROR.getMessage());
+        }
+
+        // 생성된 회의록 ID 기준으로 참여자 Entity 리스트 생성
+        for (Long participantMemberId : request.getParticipantIds()) {
+            MeetingParticipant participant = MeetingParticipant.builder()
+                    .meetingId(meeting.getId())  // 생성된 Meeting ID 사용
+                    .memberId(participantMemberId)
+                    .build();
+
+            // 참여자 테이블 저장
+            meetingParticipantService.createParticipant(participant);
+        }
+    }
+
+    @Override
+    public Meeting getMeetingWithParticipants(Long meetingId) {
+        return null;
+    }
+
+    @Override
+    public Long createMeetingWithParticipants(MeetingCreateRequest request, Long projectId, Long memberId, List<Long> participantMemberIds) {
+        return 0L;
     }
 }
