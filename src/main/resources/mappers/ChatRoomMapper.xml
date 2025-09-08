@@ -19,24 +19,6 @@
         cr."updated_at" DESC
     </select>
 
-
-    <select id="findParticipantsByRoomIds" resultType="com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto">
-        <!-- 리스트가 null이 아니고 비어있지 않을 때만 쿼리를 실행 -->
-        <if test="roomIds != null and !roomIds.isEmpty()">
-            SELECT
-            crp."chat_room_id" AS chatRoomId, m."name" AS name
-            FROM
-            "chat_room_participants" crp
-            JOIN
-            "member" m ON crp."member_id" = m."id"
-            WHERE
-            crp."chat_room_id" IN
-            <foreach item="roomId" collection="roomIds" open="(" separator="," close=")">
-                #{roomId, jdbcType=NUMERIC}
-            </foreach>
-        </if>
-    </select>
-
     <insert id="createChatRoom"
             parameterType="com.sys.stm.domains.messenger.domain.ChatRoom">
         <selectKey keyProperty="id" resultType="int" order="BEFORE">

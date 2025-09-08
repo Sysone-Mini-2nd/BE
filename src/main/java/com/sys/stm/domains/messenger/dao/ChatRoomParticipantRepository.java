@@ -1,8 +1,11 @@
 package com.sys.stm.domains.messenger.dao;
 
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
+import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ChatRoomParticipantRepository {
@@ -14,4 +17,7 @@ public interface ChatRoomParticipantRepository {
     int findMemberByMemberId(@Param("memberId") long memberId);
 
     int deleteFromChatRoom(@Param("id") long id, @Param("memberId") long memberId);
+
+    List<ParticipantInfoResponseDto> findParticipantsByRoomIds(@Param("roomIds") List<Long> roomIds);
+
 }

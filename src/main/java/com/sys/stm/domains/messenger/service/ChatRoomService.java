@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+    private final ChatRoomParticipantService chatRoomParticipantService;
 
     public List<ChatRoomDataResponseDto> findAllChatRoomsDataById(long id) {
         // 사용자가 속한 채팅방의 기본 정보와 안 읽은 메시지 수를 가져온다.
@@ -40,15 +40,8 @@ public class ChatRoomService {
                 .map(ChatRoomInfoResponseDto::getId)
                 .toList();
 
-        // 모든 채팅방의 참여자 정보를 한 번에 가져온다.
-        List<ParticipantInfoResponseDto> participants = chatRoomRepository.findParticipantsByRoomIds(roomIds);
-
-        // 4. 참여자 정보를 채팅방 ID별로 그룹핑한다. (Map<채팅방ID, List<참여자이름>>)
-        Map<Long, List<String>> participantsMap = participants.stream()
-                .collect(Collectors.groupingBy(
-                        ParticipantInfoResponseDto::getChatRoomId,
-                        Collectors.mapping(ParticipantInfoResponseDto::getName, Collectors.toList())
-                ));
+        Map<Long, List<String>> participantsMap =
+                chatRoomParticipantService.findParticipantNamesMapByRoomIds(roomIds);
 
         return roomInfos.stream()
                 .map(roomInfo -> {
@@ -82,7 +75,7 @@ public class ChatRoomService {
 
         // TODO member테이블을 다루는 xml파일 및 member 테이블에서 id로 멤버 검색하는 sql문 만들어지면 교체
         for (Long memberId : chatRoomMemberIdList) {
-            int count = chatRoomParticipantRepository.findMemberByMemberId(memberId);
+            int count = chatRoomParticipantService.findMemberByMemberId(memberId);
 
             if (count != 1)
                 throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);

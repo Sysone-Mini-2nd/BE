@@ -3,7 +3,6 @@ package com.sys.stm.domains.messenger.dao;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomInfoResponseDto;
-import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,8 +12,6 @@ import java.util.List;
 public interface ChatRoomRepository {
 
     List<ChatRoomInfoResponseDto> findChatRoomsByMemberId(@Param("memberId") Long memberId);
-
-    List<ParticipantInfoResponseDto> findParticipantsByRoomIds(@Param("roomIds") List<Long> roomIds);
 
     int createChatRoom(ChatRoom chatRoom);
 
