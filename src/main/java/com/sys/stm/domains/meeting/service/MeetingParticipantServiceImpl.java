@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,5 +30,16 @@ public class MeetingParticipantServiceImpl implements MeetingParticipantService 
     @Override
     public Optional<MeetingParticipant> findById(Long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public Map<Long, List<MeetingParticipant>> findByMeetingIds(List<Long> meetingIds) {
+        // 참석자 데이터 배치 조회
+        Map<Long, List<MeetingParticipant>> participantsByMeetingId =
+                meetingParticipantRepository.findByMeetingIds(meetingIds)
+                        .stream()
+                        .collect(Collectors.groupingBy(MeetingParticipant::getMeetingId));
+
+        return participantsByMeetingId;
     }
 }

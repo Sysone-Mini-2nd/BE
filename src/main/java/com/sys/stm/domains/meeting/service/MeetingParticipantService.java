@@ -3,6 +3,7 @@ package com.sys.stm.domains.meeting.service;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface MeetingParticipantService {
@@ -14,4 +15,6 @@ public interface MeetingParticipantService {
 
     // 참석자 조회 (ID로)
     Optional<MeetingParticipant> findById(Long id);
+
+    Map<Long, List<MeetingParticipant>> findByMeetingIds(List<Long> meetingIds);
 }
