@@ -1,6 +1,7 @@
 package com.sys.stm.domains.messenger.service;
 
 import com.sys.stm.domains.messenger.dao.MemberProfileMapper;
+import com.sys.stm.domains.messenger.dto.request.MemberProfileUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,9 @@ public class MemberProfileService {
         // 와일드카드 삽입
         keyword = '%' + keyword + '%';
         return memberProfileMapper.findMemberProfilesByEmailOrName(keyword);
+    }
+
+    public int updateMemberProfile(long id, MemberProfileUpdateRequestDto dto) {
+        return memberProfileMapper.updateMemberProfile(id, dto);
     }
 }

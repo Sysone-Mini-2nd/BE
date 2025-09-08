@@ -4,6 +4,7 @@ import com.sys.stm.domains.messenger.dao.ChatRoomMapper;
 import com.sys.stm.domains.messenger.dao.ChatRoomParticipantMapper;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
+import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomInfoResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
@@ -87,5 +88,10 @@ public class ChatRoomService {
                 throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
 
+    }
+
+    public int updateChatRoom(long id, ChatRoomUpdateRequestDto dto) {
+        // 채팅방 이름 혹은 최근 메시지 업데이트
+        return chatRoomMapper.updateChatRoom(id, dto);
     }
 }
