@@ -4,6 +4,7 @@ package com.sys.stm.domains.messenger.controller;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
+import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
 import com.sys.stm.domains.messenger.service.ChatRoomService;
@@ -49,4 +50,15 @@ public class ChatRoomController {
 
     }
 
+    // 채팅방 이름 or 최근 메시지 변경
+    @PutMapping("/update-chat-room/{id}")
+    public ApiResponse<?> updateChatRoom(@PathVariable long id, @RequestBody ChatRoomUpdateRequestDto dto){
+
+        int updateChatRoomCount = chatRoomService.updateChatRoom(id, dto);
+
+        if(updateChatRoomCount == 1)
+            return ApiResponse.ok();
+        else
+            throw new RuntimeException("채팅방 업데이트에 실패했습니다. 다시 시도해주세요.");
+    }
 }
