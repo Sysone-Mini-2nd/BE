@@ -28,6 +28,33 @@
 		</collection>
 	</resultMap>
 
+
+	<!-- ID에 따른 Entity 조회 -->
+	<select id="getMeetingById" parameterType="long" resultMap="MeetingWithParticipantsMap">
+		SELECT
+			m."id" as meeting_id,
+			m."project_id",
+			m."title",
+			m."content",
+			m."member_id",
+			m."type",
+			m."progress_date",
+			m."place",
+			m."created_at",
+			m."updated_at",
+			m."is_deleted",
+			mp."id" as participant_id,
+			mp."meeting_id",
+			mp."member_id" as participant_member_id,
+			mp."created_at" as participant_created_at,
+			mp."updated_at" as participant_updated_at,
+			mp."is_deleted" as participant_is_deleted
+		FROM "meeting" m
+				 LEFT JOIN "meeting_participant" mp ON m."id" = mp."meeting_id" AND mp."is_deleted" = 0
+		WHERE m."id" = #{id} AND m."is_deleted" = 0
+	</select>
+
+
 	<!-- 회의 생성 -->
 	<insert id="createMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">
 		<selectKey keyProperty="id" resultType="long" order="BEFORE">
@@ -111,6 +138,15 @@
 		</if>
 	</select>
 
+
+	<!-- 논리 삭제를 위한 DELETE 쿼리 (실제로는 UPDATE 실행) -->
+	<delete id="deleteMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">
+		UPDATE "meeting"
+		SET
+			"is_deleted" = #{isDeleted},
+			"updated_at" = #{updatedAt}
+		WHERE "id" = #{id}
+	</delete>
 <!--	&lt;!&ndash; 회의 조회 (ID로) &ndash;&gt;-->
 <!--	<select id="findById" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.Meeting">-->
 <!--		SELECT -->

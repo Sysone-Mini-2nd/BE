@@ -10,6 +10,9 @@ import java.util.Optional;
 @Mapper
 public interface MeetingParticipantRepository {
 
+    // ID에 따른 Entity 조회
+    Optional<MeetingParticipant> getParticipantById(Long meetingParticipantId);
+
     // 참석자 생성
     void createParticipant(MeetingParticipant participant);
 
@@ -21,4 +24,6 @@ public interface MeetingParticipantRepository {
 
     // 회의 ID 목록으로 참석자 배치 조회
     List<MeetingParticipant> findByMeetingIds(List<Long> meetingIds);
+
+    void deleteMeetingParticipant(MeetingParticipant participant);
 }

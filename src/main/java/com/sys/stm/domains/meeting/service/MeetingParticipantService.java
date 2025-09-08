@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface MeetingParticipantService {
+
     // 참석자 생성
     void createParticipant(MeetingParticipant participant);
 
@@ -17,4 +18,6 @@ public interface MeetingParticipantService {
     Optional<MeetingParticipant> findById(Long id);
 
     Map<Long, List<MeetingParticipant>> findByMeetingIds(List<Long> meetingIds);
+
+    void deleteParticipant(Long meetingParticipantId);
 }

@@ -3,6 +3,7 @@ package com.sys.stm.domains.meeting.service;
 import com.sys.stm.domains.meeting.dao.MeetingRepository;
 import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
+import com.sys.stm.domains.meeting.domain.Participant;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.MeetingDetailResponseDTO;
 import com.sys.stm.domains.meeting.dto.response.MeetingListPageResponseDTO;
@@ -93,6 +94,7 @@ public class MeetingServiceImpl implements MeetingService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MeetingListPageResponseDTO<MeetingListResponseDTO> getMeetingList(Long projectId, int page, int size, String progressDate, String keyword) {
 
@@ -167,7 +169,25 @@ public class MeetingServiceImpl implements MeetingService {
 
     }
 
+    @Override
+    public void deleteMeeting(Long meetingId) {
 
+        Meeting meeting = validateMeetingExists(meetingId);
+
+        // 회의록 삭제
+        meetingRepository.deleteMeeting(meeting);
+
+        // 회의록에 연관된 데이터 삭제
+        // 1. 참석자 데이터 삭제
+        meeting.getParticipants().stream()
+                .forEach(
+                        meetingParticipant -> {
+                            meetingParticipantService.deleteParticipant(meetingParticipant.getId());
+                        }
+                );
+
+
+    }
 
 
     @Override
@@ -175,5 +195,12 @@ public class MeetingServiceImpl implements MeetingService {
         return 0L;
     }
 
+
+
+
+    protected Meeting validateMeetingExists(Long meetingId) {
+        return  meetingRepository.getMeetingById(meetingId)
+                .orElseThrow(() -> new NotFoundException(ExceptionMessage.MEETING_NOT_FOUND));
+    }
 
 }

@@ -3,6 +3,17 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.meeting.dao.MeetingParticipantRepository">
 
+
+
+    <!-- ID에 따른 Entity 조회 -->
+    <select id="getParticipantById" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
+        SELECT
+            *
+        FROM
+            "meeting_participant"
+        WHERE "id" = #{id}
+    </select>
+
     <!-- 참석자 생성 -->
     <insert id="createParticipant" parameterType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
         INSERT INTO "meeting_participant"("meeting_id", "member_id", "created_at", "updated_at", "is_deleted")
@@ -26,6 +37,15 @@
         AND "is_deleted" = 0
         ORDER BY "meeting_id", "created_at" ASC
     </select>
+
+
+    <delete id="deleteMeetingParticipant" parameterType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
+        UPDATE "meeting_participant"
+        SET
+            "is_deleted" = #{isDeleted},
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </delete>
 <!--    &lt;!&ndash; 회의별 참석자 목록 조회 &ndash;&gt;-->
 <!--    <select id="findByMeetingId" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.MeetingParticipant">-->
 <!--        SELECT "id",-->

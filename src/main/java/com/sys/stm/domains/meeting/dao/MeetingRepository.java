@@ -9,6 +9,9 @@ import java.util.Optional;
 
 @Mapper
 public interface MeetingRepository {
+    // 회의록 Entity 조회
+    Optional<Meeting> getMeetingById(Long meetingId);
+
 
     // 회의 생성
     int createMeeting(Meeting meeting);
@@ -29,6 +32,7 @@ public interface MeetingRepository {
     // 검색 조건을 포함한 전체 개수 조회
     int countByProjectIdWithSearch(Map<String, Object> params);
 
+    void deleteMeeting(Meeting meeting);
 
 //    // 회의 조회 (ID로)
 //    Optional<Meeting> findById(Long id);

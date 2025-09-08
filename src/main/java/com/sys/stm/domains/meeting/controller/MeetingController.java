@@ -70,17 +70,6 @@ public class MeetingController {
         return ApiResponse.ok(200, response, "회의록 세부 조회 성공");
     }
 
-    // 회의록 상세 조회
-//    @GetMapping("/{projectId}")
-//    public ApiResponse<List<MeetingListResponseDTO>> getMeetingList(
-//            @PathVariable Long projectId
-//    ) {
-//
-//        List<MeetingListResponseDTO> response = meetingService.getMeetingList(projectId);
-//
-//        return ApiResponse.ok(200, response, "회의록 리스트 조회 성공");
-//    }
-
     // 프로젝트별 회의 목록 조회 (Oracle ROWNUM 페이지네이션, 간소화된 MeetingListResponseDTO 반환)
     @GetMapping("/{projectId}")
     public ApiResponse<MeetingListPageResponseDTO<MeetingListResponseDTO>> getMeetingsByProject(
@@ -92,6 +81,17 @@ public class MeetingController {
 
         MeetingListPageResponseDTO<MeetingListResponseDTO> response = meetingService.getMeetingList(projectId, page, size, progressDate, keyword);
         return ApiResponse.ok(200, response, "프로젝트별 회의 목록 조회 성공");
+    }
+
+
+    @DeleteMapping("/{projectId}/{meetingId}")
+    public ApiResponse<String> deleteMeeting(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingId
+    ){
+        meetingService.deleteMeeting(meetingId);
+
+        return ApiResponse.ok(200, null, "회의록 삭제가 완료되었습니다.");
     }
 
 }

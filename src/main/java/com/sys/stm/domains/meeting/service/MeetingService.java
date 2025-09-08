@@ -20,4 +20,6 @@ public interface MeetingService {
 
     // 페이지네이션을 위한 회의 목록 조회 (검색 기능 포함)
     MeetingListPageResponseDTO<MeetingListResponseDTO> getMeetingList(Long projectId, int page, int size, String progressDate, String keyword);
+
+    void deleteMeeting(Long meetingId);
 }

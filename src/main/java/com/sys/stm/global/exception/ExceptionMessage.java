@@ -42,7 +42,10 @@ public enum ExceptionMessage {
 
     // 회의록 관련
     MEETING_NOT_FOUND("회의록 데이터 정보가 없음"),
+    MEETING_PARTICIPANT_NOT_FOUND("회의록 참석자 데이터 정보가 없음"),
     MEETING_RUNTIME_ERROR("회의록 데이터 저장하는 과정에서 오류 발생"),
+
+
 
     // Naver 관련
     VOICE_NOT_FOUND("음성 파일이 존재하지 않습니다"),
