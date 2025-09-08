@@ -61,4 +61,16 @@ public class ChatRoomController {
         else
             throw new RuntimeException("채팅방 업데이트에 실패했습니다. 다시 시도해주세요.");
     }
+
+    @DeleteMapping("/delete-from-chat-room/{id}")
+    public ApiResponse<?> deleteFromChatRoom(@PathVariable long id){
+        //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
+        long memberId = 1;
+        int deleteCount = chatRoomParticipantService.deleteFromChatRoom(id, memberId);
+
+        if(deleteCount == 1)
+            return ApiResponse.ok();
+        else
+            throw new RuntimeException("해당 채팅방에 존재하지 않습니다.");
+    }
 }
