@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository">
+    <insert id="createChatRoomParticipant"
+            parameterType="com.sys.stm.domains.messenger.domain.ChatRoomParticipant">
+        INSERT INTO "chat_room_participants" ("member_id", "chat_room_id")
+        values(#{memberId},#{chatRoomId})
+    </insert>
+    <select id="findMemberByMemberId">
+        SELECT count("id")
+        FROM "member"
+        WHERE "id" = #{id}
+    </select>
+    <delete id="deleteFromChatRoom">
+        DELETE "chat_room_participants"
+        WHERE "member_id" = #{memberId}
+        AND "chat_room_id" = #{id}
+    </delete>
+
+    <select id="findParticipantsByRoomIds" resultType="com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto">
+        <!-- 리스트가 null이 아니고 비어있지 않을 때만 쿼리를 실행 -->
+        <if test="roomIds != null and !roomIds.isEmpty()">
+            SELECT
+            crp."chat_room_id" AS chatRoomId, m."name" AS name
+            FROM
+            "chat_room_participants" crp
+            JOIN
+            "member" m ON crp."member_id" = m."id"
+            WHERE
+            crp."chat_room_id" IN
+            <foreach item="roomId" collection="roomIds" open="(" separator="," close=")">
+                #{roomId, jdbcType=NUMERIC}
+            </foreach>
+        </if>
+    </select>
+</mapper>
+
