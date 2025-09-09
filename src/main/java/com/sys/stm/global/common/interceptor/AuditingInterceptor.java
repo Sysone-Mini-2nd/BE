@@ -24,34 +24,24 @@ public class AuditingInterceptor implements Interceptor {
         Object parameter = args[1];
 
         SqlCommandType sqlCommandType = mappedStatement.getSqlCommandType();
-        
-        // 디버깅 로그 추가
-        log.info("=== AuditingInterceptor 실행 ===");
-        log.info("SQL Command Type: {}", sqlCommandType);
-        log.info("Parameter type: {}", parameter.getClass().getSimpleName());
-        log.info("Is BaseEntity instance: {}", parameter instanceof BaseEntity);
 
         if (parameter instanceof BaseEntity) {
             BaseEntity entity = (BaseEntity) parameter;
-            log.info("BaseEntity fields - createdAt: {}, updatedAt: {}, isDeleted: {}", 
-                    entity.getCreatedAt(), entity.getUpdatedAt(), entity.getIsDeleted());
 
             switch (sqlCommandType) {
                 case INSERT:
                     entity.onCreate();
-                    log.info("Auditing: INSERT - Entity created at {}", entity.getCreatedAt());
+                    log.debug("Auditing: INSERT - Entity created at {}", entity.getCreatedAt());
                     break;
                 case UPDATE:
                     entity.onUpdate();
-                    log.info("Auditing: UPDATE - Entity updated at {}", entity.getUpdatedAt());
+                    log.debug("Auditing: UPDATE - Entity updated at {}", entity.getUpdatedAt());
                     break;
                 case DELETE:
                     entity.markAsDeleted();
-                    log.info("Auditing: DELETE - Entity marked as deleted");
+                    log.debug("Auditing: DELETE - Entity marked as deleted");
                     break;
             }
-        } else {
-            log.warn("Parameter is not BaseEntity instance: {}", parameter.getClass());
         }
         return invocation.proceed();
     }
