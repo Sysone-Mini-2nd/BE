@@ -180,4 +180,13 @@
             "updated_at" = #{updatedAt}
         WHERE "id" = #{id}
     </update>
+
+    <update id="deleteIssueById" parameterType="long">
+        UPDATE "issue"
+        SET
+            "is_deleted" = 1
+        WHERE "id" = #{id}
+    </update>
+
+
 </mapper>
