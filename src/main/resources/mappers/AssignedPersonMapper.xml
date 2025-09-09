@@ -50,7 +50,28 @@
         </foreach>
     </delete>
 
-<!--    <update id="updateRole" parameterType="long"> &lt;!&ndash; 파라미터 타입 고민 &ndash;&gt;-->
+    <!-- 프로젝트 ID 목록으로 PM 정보 일괄 조회 -->
+    <select id="findPmsByProjectIds" resultType="com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO">
+        SELECT
+        AP."project_id" AS projectId,
+        M."id" AS pmId,
+        M."name" AS pmName
+        FROM
+        "assigned_person" AP
+        JOIN
+        "member" M ON AP."member_id" = M."id"
+        WHERE
+        AP."role" = 'PM'
+        AND AP."is_deleted" = 0
+        AND M."is_deleted" = 0
+        AND AP."project_id" IN
+        <foreach item="projectId" collection="projectIds" open="(" separator="," close=")">
+            #{projectId}
+        </foreach>
+    </select>
+
+
+    <!--    <update id="updateRole" parameterType="long"> &lt;!&ndash; 파라미터 타입 고민 &ndash;&gt;-->
 <!--        UPDATE "assigned_person"-->
 <!--        SET "is_deleted" = 1-->
 <!--        WHERE "id" = #{id}-->

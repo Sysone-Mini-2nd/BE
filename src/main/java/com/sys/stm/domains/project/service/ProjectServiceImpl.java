@@ -3,6 +3,7 @@ package com.sys.stm.domains.project.service;
 import com.sys.stm.domains.assignedPerson.dao.AssignedPersonRepository;
 import com.sys.stm.domains.assignedPerson.domain.AssignedPerson;
 import com.sys.stm.domains.assignedPerson.domain.AssignedPersonRole;
+import com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO;
 import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
@@ -85,15 +86,19 @@ public class ProjectServiceImpl implements ProjectService{
                 .toList();
 
         List<ProjectStatsResponseDTO> statsList = projectRepository.findProjectStatsByIds(projectIds);
-
         Map<Long, ProjectStatsResponseDTO> statsMap = statsList.stream()
                 .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
+
+        List<PmInfoResponseDTO> pmInfoList = assignedPersonRepository.findPmsByProjectIds(projectIds);
+        Map<Long, String> pmMap = pmInfoList.stream()
+                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, PmInfoResponseDTO::getPmName));
 
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
 
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
+            String pmName = pmMap.getOrDefault(p.getId(), "");
 
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
 
@@ -108,7 +113,7 @@ public class ProjectServiceImpl implements ProjectService{
                     .totalMemberCount(stats.getTotalMemberCount())
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
-                    .pmName("")
+                    .pmName(pmName)
                     .build();
 
             dtoList.add(dto);
@@ -133,42 +138,13 @@ public class ProjectServiceImpl implements ProjectService{
                 .endDate(projectCreateRequestDTO.getEndDate())
                 .build();
 
-        projectRepository.createProject(requestProject);
+        if(projectRepository.createProject(requestProject) == 0){
+            throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
+        }
 
         createAssignedPersons(projectCreateRequestDTO.getMemberIds(), projectCreateRequestDTO.getPmId(), requestProject.getId());
 
         return getProject(requestProject.getId());
-    }
-
-    private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {
-        List<AssignedPerson> assignedPersons = new ArrayList<>();
-
-        if (memberIds != null) {
-            for (Long memberId : memberIds) {
-                if (pmId != null && memberId.equals(pmId)) {
-                    continue;
-                }
-                assignedPersons.add(AssignedPerson.builder()
-                        .projectId(projectId)
-                        .memberId(memberId)
-                        .role(AssignedPersonRole.USER)
-                        .build());
-            }
-        }
-
-        if (pmId != null && pmId != 0) {
-            assignedPersons.add(AssignedPerson.builder()
-                    .projectId(projectId)
-                    .memberId(pmId)
-                    .role(AssignedPersonRole.PM)
-                    .build());
-        }
-
-        if (!assignedPersons.isEmpty()) {
-            for (AssignedPerson assignedPerson : assignedPersons) {
-                assignedPersonRepository.createAssignedPerson(assignedPerson);
-            }
-        }
     }
 
     @Override
@@ -253,4 +229,38 @@ public class ProjectServiceImpl implements ProjectService{
 
 
     }
+
+    private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {
+        List<AssignedPerson> assignedPersons = new ArrayList<>();
+
+        if (memberIds != null) {
+            for (Long memberId : memberIds) {
+                if (pmId != null && memberId.equals(pmId)) {
+                    continue;
+                }
+                assignedPersons.add(AssignedPerson.builder()
+                        .projectId(projectId)
+                        .memberId(memberId)
+                        .role(AssignedPersonRole.USER)
+                        .build());
+            }
+        }
+
+        if (pmId != null && pmId != 0) {
+            assignedPersons.add(AssignedPerson.builder()
+                    .projectId(projectId)
+                    .memberId(pmId)
+                    .role(AssignedPersonRole.PM)
+                    .build());
+        }
+
+        if (!assignedPersons.isEmpty()) {
+            for (AssignedPerson assignedPerson : assignedPersons) {
+                if(assignedPersonRepository.createAssignedPerson(assignedPerson) == 0) {
+                    throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
+                }
+            }
+        }
+    }
+
 }
