@@ -48,7 +48,7 @@ public class ProjectServiceImpl implements ProjectService{
         List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // todo: List<Member>로 변경
 
         String pmName = "";
-        Long pmId = 0L;
+        long pmId = 0L;
         for(Map<String, Object> member : membersByProjectId){
             String role = member.get("ROLE").toString();
 
@@ -58,7 +58,7 @@ public class ProjectServiceImpl implements ProjectService{
             }
         }
 
-        ProjectDetailResponseDTO responseDTO = ProjectDetailResponseDTO.builder()
+        return ProjectDetailResponseDTO.builder()
                 .id(responseProject.getId())
                 .name(responseProject.getName())
                 .desc(responseProject.getDesc())
@@ -72,8 +72,6 @@ public class ProjectServiceImpl implements ProjectService{
                 .pmName(pmName)
                 .members(membersByProjectId)
                 .build();
-
-        return responseDTO;
     }
 
     @Override
@@ -167,7 +165,7 @@ public class ProjectServiceImpl implements ProjectService{
         }
 
         List<Map<String, Object>> currentMembers = assignedPersonRepository.findMembersByProjectId(projectId);
-        Long existingPmId = 0L;
+        long existingPmId = 0L;
         List<Long> existingUserIds = new ArrayList<>();
         for (Map<String, Object> member : currentMembers) {
             if ("PM".equals(member.get("ROLE").toString())) {
