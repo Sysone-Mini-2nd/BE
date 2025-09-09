@@ -28,7 +28,6 @@ server:
 
 
 mybatis:
-  plugins: com.sys.stm.global.common.interceptor.AuditingInterceptor
   mapper-locations: classpath:/mappers/*.xml
   configuration:
     map-underscore-to-camel-case: true
