@@ -2,6 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.issue.dao.IssueRepository">
+    <resultMap id="issueMap" type="com.sys.stm.domains.issue.domain.Issue">
+        <id property="id" column="id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
     <!-- Detail 출력용 IssueDetailMap -->
     <resultMap id="issueDetailMap" type="com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO">
         <id property="id" column="id"/>
@@ -93,10 +107,36 @@
             </if>
     </select>
 
-    <!-- 마지막 insert 된 값 -->
-    <select id="findLastInsertedId">
-        SELECT SEQ_ISSUE.CURRVAL FROM dual
+    <select id="findAllByProjectIdAndMemberId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
     </select>
+
+    <select id="findAllByMemberId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "member_id" = #{memberId} AND "is_deleted" = 0
+    </select>
+
+    <update id="unassignIssues" parameterType="java.util.List">
+        UPDATE "issue"
+        SET
+            "member_id" = NULL,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" IN
+        <foreach item="issueId" collection="issueIds" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </update>
 
     <!-- 작업(issue) 생성 -->
     <insert id="createIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">

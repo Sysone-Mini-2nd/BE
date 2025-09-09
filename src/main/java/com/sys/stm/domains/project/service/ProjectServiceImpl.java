@@ -4,6 +4,8 @@ import com.sys.stm.domains.assignedPerson.dao.AssignedPersonRepository;
 import com.sys.stm.domains.assignedPerson.domain.AssignedPerson;
 import com.sys.stm.domains.assignedPerson.domain.AssignedPersonRole;
 import com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO;
+import com.sys.stm.domains.issue.dao.IssueRepository;
+import com.sys.stm.domains.issue.domain.Issue;
 import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
@@ -33,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProjectServiceImpl implements ProjectService{
     private final ProjectRepository projectRepository;
     private final AssignedPersonRepository assignedPersonRepository;
+    private final IssueRepository issueRepository;
 
     @Override
     public ProjectDetailResponseDTO getProject(Long projectId) {
@@ -204,6 +207,21 @@ public class ProjectServiceImpl implements ProjectService{
             assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, membersToRemove);
         }
 
+        // 삭제된 멤버에게 할당되어 있는 이슈 memberId -> null로 변경
+            /*
+                1. 사용자에게 할당된 이슈 아이디 조회 (by MemberId && by ProjectId) -> IssueIds
+                2. IssueIds
+            */
+
+        for(Long memberId : membersToRemove){
+            List<Long> issueIds = issueRepository
+                    .findAllByProjectIdAndMemberId(projectId, memberId)
+                    .stream()
+                    .map(Issue::getId)
+                    .toList();
+            issueRepository.unassignIssues(issueIds);
+        }
+
         if (!membersToAdd.isEmpty()) {
             for (Long memberId : membersToAdd) {
                 assignedPersonRepository.createAssignedPerson(AssignedPerson.builder()
@@ -235,7 +253,7 @@ public class ProjectServiceImpl implements ProjectService{
 
         if (memberIds != null) {
             for (Long memberId : memberIds) {
-                if (pmId != null && memberId.equals(pmId)) {
+                if (memberId.equals(pmId)) {
                     continue;
                 }
                 assignedPersons.add(AssignedPerson.builder()
