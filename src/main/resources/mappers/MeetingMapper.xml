@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.meeting.dao.MeetingRepository">
+
+	<!-- ResultMap 정의 -->
+	<resultMap id="MeetingWithParticipantsMap" type="com.sys.stm.domains.meeting.domain.Meeting">
+		<id property="id" column="meeting_id"/>
+		<result property="projectId" column="project_id"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="memberId" column="member_id"/>
+		<result property="type" column="type"/>
+		<result property="progressDate" column="progress_date"/>
+		<result property="place" column="place"/>
+		<result property="createdAt" column="created_at"/>
+		<result property="updatedAt" column="updated_at"/>
+		<result property="isDeleted" column="is_deleted"/>
+
+		<!-- 참석자 목록 (1:N 관계) -->
+		<collection property="participants" ofType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
+			<id property="id" column="participant_id"/>
+			<result property="meetingId" column="meeting_id"/>
+			<result property="memberId" column="participant_member_id"/>
+			<result property="createdAt" column="participant_created_at"/>
+			<result property="updatedAt" column="participant_updated_at"/>
+			<result property="isDeleted" column="participant_is_deleted"/>
+		</collection>
+	</resultMap>
+
+
+	<!-- ID에 따른 Entity 조회 -->
+	<select id="getMeetingById" parameterType="long" resultMap="MeetingWithParticipantsMap">
+		SELECT
+			m."id" as meeting_id,
+			m."project_id",
+			m."title",
+			m."content",
+			m."member_id",
+			m."type",
+			m."progress_date",
+			m."place",
+			m."created_at",
+			m."updated_at",
+			m."is_deleted",
+			mp."id" as participant_id,
+			mp."meeting_id",
+			mp."member_id" as participant_member_id,
+			mp."created_at" as participant_created_at,
+			mp."updated_at" as participant_updated_at,
+			mp."is_deleted" as participant_is_deleted
+		FROM "meeting" m
+				 LEFT JOIN "meeting_participant" mp ON m."id" = mp."meeting_id" AND mp."is_deleted" = 0
+		WHERE m."id" = #{id} AND m."is_deleted" = 0
+	</select>
+
+
+	<!-- 회의 생성 -->
+	<insert id="createMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">
+		<selectKey keyProperty="id" resultType="long" order="BEFORE">
+			SELECT SEQ_MEETING.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO "meeting"("id", "project_id", "title", "content", "member_id", "type", "progress_date", "place", "created_at", "updated_at", "is_deleted")
+		VALUES (
+			#{id}, #{projectId}, #{title}, #{content}, #{memberId}, #{type}, #{progressDate}, #{place}, #{createdAt}, #{updatedAt}, #{isDeleted}
+		)
+	</insert>
+
+
+	<!-- 회의와 참석자 함께 조회 (ID로) -->
+	<select id="findByIdWithParticipants" parameterType="long" resultMap="MeetingWithParticipantsMap">
+		SELECT
+			m."id" as meeting_id,
+			m."project_id",
+			m."title",
+			m."content",
+			m."member_id",
+			m."type",
+			m."progress_date",
+			m."place",
+			m."created_at",
+			m."updated_at",
+			m."is_deleted",
+			mp."id" as participant_id,
+			mp."meeting_id",
+			mp."member_id" as participant_member_id,
+			mp."created_at" as participant_created_at,
+			mp."updated_at" as participant_updated_at,
+			mp."is_deleted" as participant_is_deleted
+		FROM "meeting" m
+				 LEFT JOIN "meeting_participant" mp ON m."id" = mp."meeting_id" AND mp."is_deleted" = 0
+		WHERE m."id" = #{id} AND m."is_deleted" = 0
+		ORDER BY mp."created_at" ASC
+	</select>
+
+	<!-- 프로젝트별 회의 목록 조회 -->
+	<!-- Oracle ROWNUM을 사용한 페이지네이션 -->
+	<select id="findByProjectIdWithPagination" parameterType="map" resultType="com.sys.stm.domains.meeting.domain.Meeting">
+		SELECT * FROM (
+						  SELECT
+							  "id",
+							  "project_id" as projectId,
+							  "title",
+							  "content",
+							  "member_id" as memberId,
+							  "type",
+							  "progress_date" as progressDate,
+							  "place",
+							  "created_at" as createdAt,
+							  "updated_at" as updatedAt,
+							  "is_deleted" as isDeleted,
+							  ROW_NUMBER() OVER (ORDER BY "progress_date" DESC) as rn
+						  FROM "meeting"
+						  WHERE "project_id" = #{projectId}
+							AND "is_deleted" = 0
+							  <if test="progressDate != null">
+			AND TO_CHAR("progress_date", 'YYYY-MM-DD') = #{progressDate}
+							  </if>
+							  <if test="keyword != null and keyword != ''">
+							AND ("title" LIKE '%' || #{keyword} || '%' OR "type" LIKE '%' || #{keyword} || '%')
+							  </if>
+					  ) WHERE rn BETWEEN #{startRow} AND #{endRow}
+</select>
+
+
+
+	<!-- 검색 조건을 포함한 전체 개수 조회 -->
+	<select id="countByProjectIdWithSearch" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM "meeting"
+		WHERE "project_id" = #{projectId}
+		AND "is_deleted" = 0
+		<if test="progressDate != null">
+			AND TO_CHAR("progress_date", 'YYYY-MM-DD') = #{progressDate}
+		</if>
+		<if test="keyword != null and keyword != ''">
+			AND ("title" LIKE '%' || #{keyword} || '%' OR "type" LIKE '%' || #{keyword} || '%')
+		</if>
+	</select>
+
+
+	<!-- 논리 삭제를 위한 DELETE 쿼리 (실제로는 UPDATE 실행) -->
+	<delete id="deleteMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">
+		UPDATE "meeting"
+		SET
+			"is_deleted" = #{isDeleted},
+			"updated_at" = #{updatedAt}
+		WHERE "id" = #{id}
+	</delete>
+<!--	&lt;!&ndash; 회의 조회 (ID로) &ndash;&gt;-->
+<!--	<select id="findById" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.Meeting">-->
+<!--		SELECT -->
+<!--			id, -->
+<!--			project_id, -->
+<!--			title, -->
+<!--			member_id, -->
+<!--			type, -->
+<!--			progress_date, -->
+<!--			place, -->
+<!--			participant, -->
+<!--			created_at, -->
+<!--			updated_at, -->
+<!--			is_deleted-->
+<!--		FROM meeting -->
+<!--		WHERE id = #{id} AND is_deleted = 0-->
+<!--	</select>-->
+
+
+
+<!--	&lt;!&ndash; 회의 수정 &ndash;&gt;-->
+<!--	<update id="updateMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">-->
+<!--		UPDATE meeting-->
+<!--		SET -->
+<!--			title = #{title},-->
+<!--			type = #{type},-->
+<!--			progress_date = #{progressDate},-->
+<!--			place = #{place},-->
+<!--			participant = #{participant},-->
+<!--			updated_at = #{updatedAt}-->
+<!--		WHERE id = #{id} AND is_deleted = 0-->
+<!--	</update>-->
+
+<!--	&lt;!&ndash; 회의 삭제 (논리 삭제) &ndash;&gt;-->
+<!--	<update id="deleteMeeting" parameterType="long">-->
+<!--		UPDATE meeting-->
+<!--		SET -->
+<!--			is_deleted = 1,-->
+<!--			updated_at = CURRENT_TIMESTAMP-->
+<!--		WHERE id = #{id}-->
+<!--	</update>-->
+
+<!--	&lt;!&ndash; 회의 개수 조회 &ndash;&gt;-->
+<!--	<select id="countByProjectId" parameterType="long" resultType="int">-->
+<!--		SELECT COUNT(*) -->
+<!--		FROM meeting -->
+<!--		WHERE project_id = #{projectId} AND is_deleted = 0-->
+<!--	</select>-->
+</mapper>
+
+
