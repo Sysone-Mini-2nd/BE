@@ -1,12 +1,14 @@
 package com.sys.stm.global.common.entity;
 
 import lombok.Getter;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 
 @Getter
+@Service
 public class BaseEntity {
 
     private Timestamp createdAt;
