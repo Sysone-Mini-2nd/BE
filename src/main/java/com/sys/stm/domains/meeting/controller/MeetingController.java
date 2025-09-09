@@ -3,18 +3,21 @@ package com.sys.stm.domains.meeting.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingDetailResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListPageResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListResponseDTO;
+import com.sys.stm.domains.meeting.dto.response.*;
 import com.sys.stm.domains.meeting.service.MeetingService;
 import com.sys.stm.domains.meeting.service.NaverApiService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -93,5 +96,52 @@ public class MeetingController {
 
         return ApiResponse.ok(200, null, "회의록 삭제가 완료되었습니다.");
     }
+
+
+
+    @GetMapping("/{projectId}/{meetingId}/report")
+    public ApiResponse<MeetingAnalysisResponseDTO> getMeetingReport(
+            @PathVariable(name = "meetingId") Long meetingId
+    ){
+        Long memberId = 1L;
+
+        MeetingAnalysisResponseDTO response = meetingService.getMeetingAiData(meetingId);
+
+        return ApiResponse.ok(200, response, "회의록 AI를 통한 정리 성공");
+    }
+
+    @GetMapping("/{projectId}/{meetingId}/report/download")
+    public ResponseEntity<byte[]> downloadMeetingReport(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingId
+    ) {
+        Long memberId = 1L;
+
+        try {
+            // Service에서 Map으로 받아옴
+            Map<String, Object> reportData = meetingService.downloadMeetingReport(projectId, meetingId);
+
+            MeetingDetailResponseDTO meetingDetail = (MeetingDetailResponseDTO) reportData.get("meetingDetail");
+            byte[] reportBytes = (byte[]) reportData.get("reportBytes");
+            String fileName = (String) reportData.get("fileName");
+
+            // 한글 파일명 처리
+            String encodedFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", encodedFileName);
+            headers.setContentLength(reportBytes.length);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(reportBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 
 }

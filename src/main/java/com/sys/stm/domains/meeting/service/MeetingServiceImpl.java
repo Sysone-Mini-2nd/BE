@@ -5,10 +5,7 @@ import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
 import com.sys.stm.domains.meeting.domain.Participant;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingDetailResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListPageResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingParticipantResponseDTO;
+import com.sys.stm.domains.meeting.dto.response.*;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +30,8 @@ public class MeetingServiceImpl implements MeetingService {
     private final MeetingRepository meetingRepository;
     private final MeetingParticipantService meetingParticipantService;
     private final NaverApiService naverApiService;
+    private final MeetingAnalysisService meetingAnalysisService;
+    private final MeetingReportService meetingReportService;
 
     @Override
     public void createMeeting(MeetingCreateRequestDTO request, MultipartFile audioFile, Long memberId, Long projectId) {
@@ -187,6 +189,42 @@ public class MeetingServiceImpl implements MeetingService {
                 );
 
 
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public MeetingAnalysisResponseDTO getMeetingAiData(Long meetingId) {
+        Meeting meeting = validateMeetingExists(meetingId);
+
+        MeetingAnalysisResponseDTO response = meetingAnalysisService.analyzeMeetingContent(meeting.getContent());
+
+        return response;
+    }
+
+    @Override
+    public Map<String, Object>  downloadMeetingReport(Long projectId, Long meetingId) {
+        Meeting meeting = validateMeetingExists(meetingId);
+
+        MeetingAnalysisResponseDTO meetingAnalysisResponseDTO = meetingAnalysisService.analyzeMeetingContent(meeting.getContent());
+
+        // 회의록 상세 정보 조회
+        MeetingDetailResponseDTO meetingDetail = getMeetingWithParticipants(projectId, meetingId);
+
+        // 템플릿 기반 보고서 생성
+        byte[] reportBytes = meetingReportService.fillMeetingTemplate(meetingDetail,meetingAnalysisResponseDTO);
+
+        // 파일명 생성
+        String fileName = "회의록_" + meetingDetail.getTitle() + "_" +
+                meetingDetail.getProgressDate().toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".docx";
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("meetingDetail", meetingDetail);
+        result.put("reportBytes", reportBytes);
+        result.put("fileName", fileName);
+
+        return result;
     }
 
 

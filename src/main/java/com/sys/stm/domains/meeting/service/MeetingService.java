@@ -1,12 +1,11 @@
 package com.sys.stm.domains.meeting.service;
 
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingDetailResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListPageResponseDTO;
-import com.sys.stm.domains.meeting.dto.response.MeetingListResponseDTO;
+import com.sys.stm.domains.meeting.dto.response.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MeetingService {
 
@@ -22,4 +21,8 @@ public interface MeetingService {
     MeetingListPageResponseDTO<MeetingListResponseDTO> getMeetingList(Long projectId, int page, int size, String progressDate, String keyword);
 
     void deleteMeeting(Long meetingId);
+
+    MeetingAnalysisResponseDTO getMeetingAiData(Long meetingId);
+
+    Map<String, Object> downloadMeetingReport(Long projectId, Long meetingId);
 }

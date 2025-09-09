@@ -28,6 +28,9 @@ logging:
 server:
   port: 8080
 
+app:
+  report:
+    save-path: ./reports  # 기본값: 현재 디렉토리의 reports 폴더
 
 mybatis:
   mapper-locations: classpath:/mappers/*.xml
