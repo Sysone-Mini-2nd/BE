@@ -18,6 +18,26 @@
         WHERE "id" = #{id}
     </update>
 
+    <select id="findMembersByProjectId" parameterType="long">
+        SELECT
+            m."id" AS id,
+            m."account_id" AS accountId,
+            ap."role" AS role,
+            m."email" AS email,
+            m."name" AS name,
+--             m."last_login_at" AS lastLoginAt,
+--             m."created_at" AS createdAt,
+--             m."updated_at" AS updatedAt,
+            TO_CHAR(m."last_login_at", 'YYYY-MM-DD HH24:MI:SS') AS lastLoginAt,
+            TO_CHAR(m."created_at", 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+            TO_CHAR(m."updated_at", 'YYYY-MM-DD HH24:MI:SS') AS updatedAt,
+            m."pic_url" AS picUrl,
+            m."position" AS position
+        FROM "project" p JOIN "assigned_person" ap ON p."id" = ap."project_id"
+                         JOIN "member" m ON ap."member_id" = m."id"
+        WHERE p."id" = #{projectId} AND p."is_deleted" = 0
+    </select>
+
 <!--    <update id="updateRole" parameterType="long"> &lt;!&ndash; 파라미터 타입 고민 &ndash;&gt;-->
 <!--        UPDATE "assigned_person"-->
 <!--        SET "is_deleted" = 1-->

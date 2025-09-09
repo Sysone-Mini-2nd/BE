@@ -32,6 +32,18 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     public ProjectDetailResponseDTO getProject(Long projectId) {
         Project responseProject = projectRepository.findById(projectId);
+
+        List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // 완성되면 List<Member> 구조
+
+        String pmName = "";
+        for(Map<String, Object> member : membersByProjectId){
+            String role = member.get("ROLE").toString();
+
+            if(role.equals("PM")){
+                pmName = member.get("NAME").toString();
+            }
+        }
+
         ProjectDetailResponseDTO responseDTO = ProjectDetailResponseDTO.builder()
                 .id(responseProject.getId())
                 .name(responseProject.getName())
@@ -39,12 +51,11 @@ public class ProjectServiceImpl implements ProjectService{
                 .status(responseProject.getStatus())
                 .priority(responseProject.getPriority())
                 .totalMemberCount(
-                        3) // todo : member 완성되면 assignedPersonRepository.findAllMemberByProjectId(projectId).getSize()로 변경
+                        membersByProjectId.size())
                 .startDate(responseProject.getStartDate())
                 .endDate(responseProject.getEndDate())
-                .pmName("") // todo : member 완성되면 assignedPersonRepository.findPmByProjectId(projectId).getName()으로 변경
-//                .members(assignedPersonRepository.findAllMemberByProjectId(projectId))
-// todo: 멤버 엮기 assignedPersonRepository.findAllMemberByProjectId -> List<Member>
+                .pmName(pmName)
+                .members(membersByProjectId)
                 .build();
 
         return responseDTO;
@@ -109,6 +120,7 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     @Transactional
     public ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO) {
+
         /*
         * 1. 프로젝트 생성
         * 2. 참여자에 insert
@@ -141,6 +153,7 @@ public class ProjectServiceImpl implements ProjectService{
                 .build());
 
         for(AssignedPerson assignedPerson : assignedPersons){
+            System.out.println(assignedPerson);
             assignedPersonRepository.createAssignedPerson(assignedPerson);
         }
 
