@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AssignedPersonRole {
-    USER("할 일"),
-    PM("진행 중");
+    USER("팀원"),
+    PM("프로젝트 매니저");
 
     private final String displayName;
 }

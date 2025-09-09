@@ -12,7 +12,10 @@ import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectStatsResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectSummaryResponseDTO;
+import com.sys.stm.global.exception.BadRequestException;
+import com.sys.stm.global.exception.ExceptionMessage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +36,16 @@ public class ProjectServiceImpl implements ProjectService{
     public ProjectDetailResponseDTO getProject(Long projectId) {
         Project responseProject = projectRepository.findById(projectId);
 
-        List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // 완성되면 List<Member> 구조
+        List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // todo: List<Member>로 변경
 
         String pmName = "";
+        Long pmId = 0L;
         for(Map<String, Object> member : membersByProjectId){
             String role = member.get("ROLE").toString();
 
             if(role.equals("PM")){
                 pmName = member.get("NAME").toString();
+                pmId = Long.parseLong(member.get("ID").toString());
             }
         }
 
@@ -54,6 +59,7 @@ public class ProjectServiceImpl implements ProjectService{
                         membersByProjectId.size())
                 .startDate(responseProject.getStartDate())
                 .endDate(responseProject.getEndDate())
+                .pmId(pmId)
                 .pmName(pmName)
                 .members(membersByProjectId)
                 .build();
@@ -63,34 +69,27 @@ public class ProjectServiceImpl implements ProjectService{
 
     @Override
     public ProjectListResponseDTO getProjectsByMemberId(Long memberId) {
-        // 1. [쿼리 1] 사용자가 속한 프로젝트 목록 조회 (N개)
         List<Project> responseProjects = projectRepository.findAllByMemberId(memberId);
 
         if (responseProjects.isEmpty()) {
-            return ProjectListResponseDTO.builder().build(); // 빈 리스트 반환
+            return ProjectListResponseDTO.builder().build();
         }
 
-        // 2. 통계 조회를 위해 프로젝트 ID 목록 추출
         List<Long> projectIds = responseProjects.stream()
                 .map(Project::getId)
-                .toList(); // Java 16+ .collect(Collectors.toList());
+                .toList();
 
-        // 3. [쿼리 2] N개 프로젝트의 통계 정보를 한 번에 조회 (Batch Fetching)
         List<ProjectStatsResponseDTO> statsList = projectRepository.findProjectStatsByIds(projectIds);
 
-        // 4. 통계 정보를 ID 기준으로 Map으로 변환 (빠른 조회를 위함)
         Map<Long, ProjectStatsResponseDTO> statsMap = statsList.stream()
                 .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
 
-        // 5. DTO 조립 (DB 접근 없이 메모리에서 처리)
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
 
         for (Project p : responseProjects) {
-            // Map에서 해당 프로젝트의 통계 정보 가져오기
-            ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO()); // 통계 정보가 없는 경우 대비
+            ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
 
-            // 상태별 카운트 (기존 로직)
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
 
             ProjectSummaryResponseDTO dto = ProjectSummaryResponseDTO.builder()
@@ -104,7 +103,7 @@ public class ProjectServiceImpl implements ProjectService{
                     .totalMemberCount(stats.getTotalMemberCount())
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
-                    .pmName("") // todo: pmname 할당
+                    .pmName("")
                     .build();
 
             dtoList.add(dto);
@@ -120,11 +119,6 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     @Transactional
     public ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO) {
-
-        /*
-        * 1. 프로젝트 생성
-        * 2. 참여자에 insert
-        */
         Project requestProject = Project.builder()
                 .name(projectCreateRequestDTO.getName())
                 .desc(projectCreateRequestDTO.getDesc())
@@ -136,34 +130,107 @@ public class ProjectServiceImpl implements ProjectService{
 
         projectRepository.createProject(requestProject);
 
+        createAssignedPersons(projectCreateRequestDTO.getMemberIds(), projectCreateRequestDTO.getPmId(), requestProject.getId());
+
+        return getProject(requestProject.getId());
+    }
+
+    private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {
         List<AssignedPerson> assignedPersons = new ArrayList<>();
 
-        for (Long memberId : projectCreateRequestDTO.getMemberIds()) {
+        if (memberIds != null) {
+            for (Long memberId : memberIds) {
+                if (pmId != null && memberId.equals(pmId)) {
+                    continue;
+                }
+                assignedPersons.add(AssignedPerson.builder()
+                        .projectId(projectId)
+                        .memberId(memberId)
+                        .role(AssignedPersonRole.USER)
+                        .build());
+            }
+        }
+
+        if (pmId != null && pmId != 0) {
             assignedPersons.add(AssignedPerson.builder()
-                            .projectId(requestProject.getId())
-                            .memberId(memberId)
-                            .role(AssignedPersonRole.USER)
+                    .projectId(projectId)
+                    .memberId(pmId)
+                    .role(AssignedPersonRole.PM)
                     .build());
         }
 
-        assignedPersons.add(AssignedPerson.builder()
-                .projectId(requestProject.getId())
-                .memberId(projectCreateRequestDTO.getPmId())
-                .role(AssignedPersonRole.PM)
-                .build());
-
-        for(AssignedPerson assignedPerson : assignedPersons){
-            System.out.println(assignedPerson);
-            assignedPersonRepository.createAssignedPerson(assignedPerson);
+        if (!assignedPersons.isEmpty()) {
+            for (AssignedPerson assignedPerson : assignedPersons) {
+                assignedPersonRepository.createAssignedPerson(assignedPerson);
+            }
         }
-
-        // todo: 반환타입 처리, 요구사항 명세서 처리
-        return null;
     }
 
     @Override
-    public ProjectDetailResponseDTO updateProject(Long projectId, ProjectUpdateRequestDTO projectUpdateRequestDTO) {
-        return null;
+    @Transactional
+    public ProjectDetailResponseDTO updateProject(Long projectId, ProjectUpdateRequestDTO dto) {
+        Project projectToUpdate = Project.builder()
+                .id(projectId)
+                .name(dto.getName())
+                .desc(dto.getDesc())
+                .status(dto.getStatus())
+                .priority(dto.getPriority())
+                .startDate(dto.getStartDate())
+                .endDate(dto.getEndDate())
+                .build();
+        if (projectRepository.updateProject(projectToUpdate) == 0) {
+            throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
+        }
+
+        List<Map<String, Object>> currentMembers = assignedPersonRepository.findMembersByProjectId(projectId);
+        Long existingPmId = 0L;
+        List<Long> existingUserIds = new ArrayList<>();
+        for (Map<String, Object> member : currentMembers) {
+            if ("PM".equals(member.get("ROLE").toString())) {
+                existingPmId = Long.parseLong(member.get("ID").toString());
+            } else {
+                existingUserIds.add(Long.parseLong(member.get("ID").toString()));
+            }
+        }
+
+        Long newPmId = dto.getPmId();
+        List<Long> newUserIds = (dto.getMemberIds() != null) ? new ArrayList<>(dto.getMemberIds()) : Collections.emptyList();
+
+        if (newPmId != null) {
+            newUserIds.remove(newPmId);
+        }
+
+        if (newPmId != null && !newPmId.equals(existingPmId)) {
+            if (existingPmId != 0L) {
+                assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, List.of(existingPmId));
+            }
+            assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, List.of(newPmId));
+            assignedPersonRepository.createAssignedPerson(AssignedPerson.builder()
+                    .projectId(projectId).memberId(newPmId).role(AssignedPersonRole.PM).build());
+        }
+
+        List<Long> membersToAdd = new ArrayList<>(newUserIds);
+        membersToAdd.removeAll(existingUserIds);
+
+        List<Long> membersToRemove = new ArrayList<>(existingUserIds);
+        membersToRemove.removeAll(newUserIds);
+
+        if (newPmId != null) {
+            membersToRemove.remove(newPmId);
+        }
+
+        if (!membersToRemove.isEmpty()) {
+            assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, membersToRemove);
+        }
+
+        if (!membersToAdd.isEmpty()) {
+            for (Long memberId : membersToAdd) {
+                assignedPersonRepository.createAssignedPerson(AssignedPerson.builder()
+                        .projectId(projectId).memberId(memberId).role(AssignedPersonRole.USER).build());
+            }
+        }
+
+        return getProject(projectId);
     }
 
     @Override

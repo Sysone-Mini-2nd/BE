@@ -25,6 +25,7 @@ public class ProjectDetailResponseDTO {
     private Integer totalMemberCount;
     private Timestamp startDate;
     private Timestamp endDate;
+    private Long pmId;
     private String pmName;
     @Builder.Default
     List<Map<String, Object>> members = new ArrayList<>(); // 임시

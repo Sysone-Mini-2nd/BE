@@ -35,8 +35,20 @@
             m."position" AS position
         FROM "project" p JOIN "assigned_person" ap ON p."id" = ap."project_id"
                          JOIN "member" m ON ap."member_id" = m."id"
-        WHERE p."id" = #{projectId} AND p."is_deleted" = 0
+        WHERE p."id" = #{projectId} AND p."is_deleted" = 0 AND ap."is_deleted" = 0
     </select>
+
+    <delete id="deleteByProjectIdAndMemberIds">
+        UPDATE "assigned_person"
+        SET
+        "is_deleted" = 1,
+        "updated_at" = SYSTIMESTAMP
+        WHERE "project_id" = #{projectId}
+        AND "member_id" IN
+        <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
+            #{memberId}
+        </foreach>
+    </delete>
 
 <!--    <update id="updateRole" parameterType="long"> &lt;!&ndash; 파라미터 타입 고민 &ndash;&gt;-->
 <!--        UPDATE "assigned_person"-->

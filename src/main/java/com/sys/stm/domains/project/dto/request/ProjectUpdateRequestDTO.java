@@ -3,8 +3,11 @@ package com.sys.stm.domains.project.dto.request;
 import com.sys.stm.domains.project.domain.ProjectPriority;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,4 +22,7 @@ public class ProjectUpdateRequestDTO {
     private ProjectPriority priority;
     private Timestamp startDate;
     private Timestamp endDate;
+    @Builder.Default
+    List<Long> memberIds = new ArrayList<>();
+    Long pmId;
 }
