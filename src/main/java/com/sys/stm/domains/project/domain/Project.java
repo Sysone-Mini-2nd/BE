@@ -4,7 +4,9 @@ import com.sys.stm.global.common.entity.BaseEntity;
 import java.sql.Timestamp;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @Data
 public class Project extends BaseEntity {
