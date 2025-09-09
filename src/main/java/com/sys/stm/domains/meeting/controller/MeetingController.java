@@ -3,10 +3,14 @@ package com.sys.stm.domains.meeting.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
+import com.sys.stm.domains.meeting.dto.request.MeetingSendEmailRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
+import com.sys.stm.domains.meeting.service.EmailService;
 import com.sys.stm.domains.meeting.service.MeetingService;
 import com.sys.stm.domains.meeting.service.NaverApiService;
 import com.sys.stm.global.common.response.ApiResponse;
+import com.sys.stm.global.exception.BadRequestException;
+import com.sys.stm.global.exception.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,7 +31,7 @@ public class MeetingController {
 
     private final NaverApiService naverApiService;
     private final MeetingService meetingService;
-
+    private final EmailService emailService;
 
     @PostMapping(value = "/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> receiveAndSummarizeAudio(
@@ -143,5 +147,26 @@ public class MeetingController {
     }
 
 
+    @PostMapping("/{projectId}/{meetingId}/email")
+    public ApiResponse<String> sendEmail(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingID,
+            @RequestParam("emailData") String emailDataJson,
+            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments
+    ){
 
+        try {
+            // JSON 파싱
+            ObjectMapper mapper = new ObjectMapper();
+            MeetingSendEmailRequestDTO emailRequest = mapper.readValue(emailDataJson, MeetingSendEmailRequestDTO.class);
+
+            // 이메일 전송
+            emailService.sendEmail(emailRequest, attachments);
+
+            return ApiResponse.ok(200, null, "이메일 전송 성공");
+
+        } catch (Exception e) {
+            throw new BadRequestException(ExceptionMessage.EMAIL_BAD_REQUEST);
+        }
+    }
 }

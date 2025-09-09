@@ -10,6 +10,22 @@ spring:
           temperature: 0.2 # 응답의 창의성을 낮춰 일관된 결과를 유도
 
 
+  mail:
+    host: smtp.gmail.com  # Gmail 사용 시
+    port: 587
+    username: ${GOOGLE_EMAIL}
+    password: ${GOOGLE_EMAIL_KEY}  # 앱 비밀번호 사용
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+    default-encoding: UTF-8
+
+
   # DataBase
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
@@ -45,3 +61,8 @@ cloud:
     clova:
       client: ${NAVER_CLIENT}
       secret: ${NAVER_SECRET}
+
+# 이메일 설정
+email:
+  from: ${GOOGLE_EMAIL}
+  max-attachment-size: 10485760  # 10MB

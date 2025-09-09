@@ -58,6 +58,8 @@ public enum ExceptionMessage {
     SEND_FCM_PUSH_ERROR("FCM 메세지 전송중 오류 발생했습니다."),
 
 
+    // 이메일 관련
+    EMAIL_BAD_REQUEST("잘못된 이메일 요청입니다.")
 
 
 
