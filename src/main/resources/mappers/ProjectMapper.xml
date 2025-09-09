@@ -77,11 +77,11 @@
     </update>
 
     <!-- 프로젝트 삭제 -->
-    <update id="deleteById" parameterType="com.sys.stm.domains.project.domain.Project">
+    <update id="deleteById" parameterType="long">
         UPDATE "project"
         SET
             "is_deleted" = 1,
-            "updated_at" = #{updatedAt}
+            "updated_at" = SYSTIMESTAMP
         WHERE "id" = #{id}
     </update>
 

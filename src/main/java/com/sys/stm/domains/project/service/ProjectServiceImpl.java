@@ -14,6 +14,7 @@ import com.sys.stm.domains.project.dto.response.ProjectStatsResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectSummaryResponseDTO;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.exception.NotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,10 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     public ProjectDetailResponseDTO getProject(Long projectId) {
         Project responseProject = projectRepository.findById(projectId);
+
+        if(responseProject==null){
+            throw new NotFoundException(ExceptionMessage.DATA_NOT_FOUND);
+        }
 
         List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // todo: List<Member>로 변경
 
@@ -234,7 +239,18 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
+    @Transactional
     public void deleteProject(Long projectId) {
+        List<Map<String, Object>> members = assignedPersonRepository.findMembersByProjectId(projectId);
+        projectRepository.deleteById(projectId);
+
+        assignedPersonRepository.deleteByProjectIdAndMemberIds(
+                projectId,
+                members.stream()
+                        .map(member -> Long.parseLong(member.get("ID").toString()))
+                        .toList()
+        );
+
 
     }
 }
