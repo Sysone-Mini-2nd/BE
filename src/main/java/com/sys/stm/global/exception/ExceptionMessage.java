@@ -51,6 +51,12 @@ public enum ExceptionMessage {
     VOICE_NOT_FOUND("음성 파일이 존재하지 않습니다"),
     API_COMMUNICATION_ERROR("네이버 클로바 연결 오류 입니다."),
 
+    // 게시물 관련
+    DATA_NOT_FOUND("데이터 정보가 없음"),
+    CART_DATA_DEFERENCE("다른 가게 장바구니 데이터 존재"),
+    STORE_NOT_FOUND("가게 데이터 정보가 없음"),
+    MENU_NOT_FOUND("메뉴 데이터 정보가 없음"),
+    CART_NOT_FOUND("카트 데이터 정보가 없음"),
 
     // 알림 관련
     GET_FCM_ACCESS_TOKEN_ERROR("FCM ACCESS TOKEN 조회중 오류 발생했습니다."),
