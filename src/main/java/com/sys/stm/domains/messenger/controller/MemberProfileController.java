@@ -11,13 +11,13 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/messenger")
+@RequestMapping("/api/profile")
 public class MemberProfileController {
 
     private final MemberProfileService memberProfileService;
 
     // 본인 프로필 정보 조회
-    @GetMapping("/profile")
+    @GetMapping("")
     public ApiResponse<MemberProfileResponseDto> findMemberProfileById() {
         //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long id = 1;
@@ -26,21 +26,21 @@ public class MemberProfileController {
     }
 
     // 모든 사원 프로필 정보 조회
-    @GetMapping("/all-profiles")
+    @GetMapping("/all")
     public ApiResponse<List<MemberProfileResponseDto>> findAllMemberProfiles() {
         List<MemberProfileResponseDto> memberProfileResponseDtoList = memberProfileService.findAllMemberProfiles();
         return ApiResponse.ok(200, memberProfileResponseDtoList, "전체 사원 프로필 조회 요청이 성공적으로 처리되었습니다.");
     }
 
     // 이메일, 이름으로 특정 사원 프로필 정보 조회
-    @GetMapping("/profiles")
+    @GetMapping("/search")
     public ApiResponse<List<MemberProfileResponseDto>> findMemberProfilesByEmailOrName(@RequestParam(name = "keyword") String keyword) {
         List<MemberProfileResponseDto> memberProfileResponseDtoList = memberProfileService.findMemberProfilesByEmailOrName(keyword);
         return ApiResponse.ok(200, memberProfileResponseDtoList, "전체 사원 프로필 조회 요청이 성공적으로 처리되었습니다.");
     }
 
     // 본인 프로필 정보 수정
-    @PutMapping("/update-profile")
+    @PutMapping("/update")
     public ApiResponse<?> updateMemberProfile(@RequestBody MemberProfileUpdateRequestDto dto){
         //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long id = 1;
