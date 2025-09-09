@@ -12,7 +12,6 @@ public interface ProjectRepository {
     List<Project> findAllByMemberId(Long memberId); // todo 관리자일 경우 전체 보기 처리
     int createProject(Project project);
     int updateProject(Project project);
-    // todo: 프로젝트 PM 찾는 메서드 추가
     int deleteById(Long projectId);
     List<ProjectStatsResponseDTO> findProjectStatsByIds(@Param("projectIds") List<Long> projectIds);
 }
