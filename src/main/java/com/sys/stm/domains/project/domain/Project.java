@@ -1,4 +1,4 @@
-package com.sys.stm.domains.issue.domain;
+package com.sys.stm.domains.project.domain;
 
 import com.sys.stm.global.common.entity.BaseEntity;
 import java.sql.Timestamp;
@@ -9,14 +9,12 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Builder
 @Data
-public class Issue extends BaseEntity {
+public class Project extends BaseEntity {
     private Long id;
-    private Long projectId;
-    private Long memberId;
-    private String title;
+    private String name;
     private String desc;
+    private ProjectStatus status;
+    private ProjectPriority priority;
     private Timestamp startDate;
     private Timestamp endDate;
-    private IssueStatus status;
-    private IssuePriority priority;
 }

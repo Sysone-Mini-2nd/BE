@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.project.dao.ProjectRepository">
+    <resultMap id="projectResultMap" type="com.sys.stm.domains.project.domain.Project">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="desc" column="desc"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <select id="findById" parameterType="long" resultMap="projectResultMap">
+        SELECT
+            p."id",
+            p."name",
+            p."desc",
+            p."status",
+            p."priority",
+            p."start_date",
+            p."end_date",
+            p."created_at",
+            p."updated_at",
+            p."is_deleted"
+        FROM "project" p
+        WHERE p."id" = #{projectId} AND p."is_deleted" = 0
+    </select>
+
+    <select id="findAllByMemberId" parameterType="long" resultMap="projectResultMap">
+        SELECT
+            p."id",
+            p."name",
+            p."desc",
+            p."status",
+            p."priority",
+            p."start_date",
+            p."end_date"
+        FROM "project" p JOIN "assigned_person" ap
+                              ON ap."project_id" = p."id"
+        WHERE ap."member_id" = #{memberId}  AND p."is_deleted" = 0 AND ap."is_deleted" = 0
+    </select>
+
+    <!-- 프로젝트 생성 -->
+    <insert id="createProject" parameterType="com.sys.stm.domains.project.domain.Project">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SEQ_PROJECT.CURRVAL FROM dual
+        </selectKey>
+        INSERT INTO "project"(
+        "name", "desc", "status",
+        "priority", "start_date", "end_date",
+        "created_at", "updated_at", "is_deleted"
+        )
+        VALUES (
+        #{name}, #{desc}, #{status},
+        #{priority} , #{startDate}, #{endDate},
+        #{createdAt}, #{updatedAt}, #{isDeleted}
+        )
+    </insert>
+
+    <!-- 프로젝트 변경 -->
+    <update id="updateProject" parameterType="com.sys.stm.domains.project.domain.Project">
+        UPDATE "project"
+        SET
+            "name" = #{name},
+            "desc" = #{desc},
+            "status" = #{status},
+            "priority" = #{priority},
+            "start_date" = #{startDate},
+            "end_date" = #{endDate},
+            "updated_at" = #{updatedAt}
+            WHERE "id" = #{id}
+    </update>
+
+    <!-- 프로젝트 삭제 -->
+    <update id="deleteById" parameterType="long">
+        UPDATE "project"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" = #{id}
+    </update>
+
+    <select id="findProjectStatsByIds" resultType="com.sys.stm.domains.project.dto.response.ProjectStatsResponseDTO">
+        SELECT
+        p."id" AS id,
+        COUNT(DISTINCT ap."member_id") AS totalMemberCount,
+        COUNT(i."id") AS totalTasks,
+        SUM(CASE WHEN i."status" = 'DONE' THEN 1 ELSE 0 END) AS completedTasks,
+        CASE
+        WHEN COUNT(i."id") = 0 THEN 0
+        ELSE (SUM(CASE WHEN i."status" = 'DONE' THEN 1 ELSE 0 END) * 100.0 / COUNT(i."id"))
+        END AS progressRate
+        FROM
+        "project" p
+        LEFT JOIN
+        "assigned_person" ap ON p."id" = ap."project_id" AND ap."is_deleted" = 0
+        LEFT JOIN
+        "issue" i ON p."id" = i."project_id" AND i."is_deleted" = 0
+        WHERE
+        p."id" IN
+        <foreach collection="projectIds" item="projectId" open="(" separator="," close=")">
+            #{projectId}
+        </foreach>
+        GROUP BY
+        p."id"
+    </select>
+
+</mapper>
