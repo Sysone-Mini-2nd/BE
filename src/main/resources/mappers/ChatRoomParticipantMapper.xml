@@ -8,9 +8,9 @@
         values(#{memberId},#{chatRoomId})
     </insert>
     <select id="findMemberByMemberId">
-        SELECT count("id")
+        SELECT count("id") AS memberSize
         FROM "member"
-        WHERE "id" = #{id}
+        WHERE "id" = #{memberId}
     </select>
     <delete id="deleteFromChatRoom">
         DELETE "chat_room_participants"
