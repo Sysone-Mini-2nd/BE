@@ -205,12 +205,6 @@ public class ProjectServiceImpl implements ProjectService{
             assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, membersToRemove);
         }
 
-        // 삭제된 멤버에게 할당되어 있는 이슈 memberId -> null로 변경
-            /*
-                1. 사용자에게 할당된 이슈 아이디 조회 (by MemberId && by ProjectId) -> IssueIds
-                2. IssueIds
-            */
-
         for(Long memberId : membersToRemove){
             List<Long> issueIds = issueRepository
                     .findAllByProjectIdAndMemberId(projectId, memberId)
@@ -236,14 +230,20 @@ public class ProjectServiceImpl implements ProjectService{
         List<Map<String, Object>> members = assignedPersonRepository.findMembersByProjectId(projectId);
         projectRepository.deleteById(projectId);
 
-        assignedPersonRepository.deleteByProjectIdAndMemberIds(
-                projectId,
-                members.stream()
-                        .map(member -> Long.parseLong(member.get("ID").toString()))
-                        .toList()
-        );
+        if(members!=null && !members.isEmpty()){
+            assignedPersonRepository.deleteByProjectIdAndMemberIds(
+                    projectId,
+                    members.stream()
+                            .map(member -> Long.parseLong(member.get("ID").toString()))
+                            .toList()
+            );
+        }
 
+        List<Long> issueIds = issueRepository.findAllByProjectId(projectId).stream().map(Issue::getId).toList();
 
+        if(!issueIds.isEmpty()){
+            issueRepository.deleteIssuesByIds(issueIds);
+        }
     }
 
     private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {

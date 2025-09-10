@@ -15,7 +15,9 @@ public interface IssueRepository {
     List<IssueSummaryResponseDTO> findAllFilteredSummary(@Param("projectId") Long projectId, @Param("issueListRequestDTO") IssueListRequestDTO issueListRequestDTO);
     List<Issue> findAllByProjectIdAndMemberId(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
     List<Issue> findAllByMemberId(@Param("memberId") Long memberId);
-    int unassignIssues(@Param("issueIds") List<Long> issueIds);
+    List<Issue> findAllByProjectId(Long projectId);
+    void unassignIssues(@Param("issueIds") List<Long> issueIds);
+    void deleteIssuesByIds(List<Long> issueIds);
     int createIssue(Issue issue);
     int updateIssueStatus(Issue issue);
     int updateIssue(Issue issue);

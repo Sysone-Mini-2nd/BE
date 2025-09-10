@@ -127,6 +127,16 @@
         WHERE "member_id" = #{memberId} AND "is_deleted" = 0
     </select>
 
+    <select id="findAllByProjectId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "project_id" = #{projectId} AND "is_deleted" = 0
+    </select>
+
     <update id="unassignIssues" parameterType="java.util.List">
         UPDATE "issue"
         SET
@@ -184,9 +194,19 @@
     <update id="deleteIssueById" parameterType="long">
         UPDATE "issue"
         SET
-            "is_deleted" = 1
+            "is_deleted" = 1,
+            "updated_at" = SYSTIMESTAMP
         WHERE "id" = #{id}
     </update>
 
-
+    <update id="deleteIssuesByIds" parameterType="long">
+        UPDATE "issue"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" IN
+        <foreach collection="issueIds" item="issueId" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </update>
 </mapper>
