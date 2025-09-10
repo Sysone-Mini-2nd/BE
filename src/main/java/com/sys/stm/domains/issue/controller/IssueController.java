@@ -10,6 +10,7 @@ import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.global.common.response.ApiResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +46,12 @@ public class IssueController {
             @RequestBody IssueUpdateRequestDTO issueUpdateRequestDTO
     ) {
         return ApiResponse.ok(issueService.updateIssue(issueId, issueUpdateRequestDTO));
+    }
+
+    @DeleteMapping("issues/{issueId}")
+    public ApiResponse<String> deleteIssue(@PathVariable Long issueId) {
+        issueService.deleteIssue(issueId);
+        return ApiResponse.ok();
     }
 
     @GetMapping("issues/{issueId}/comments")

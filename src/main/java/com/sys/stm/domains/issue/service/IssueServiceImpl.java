@@ -135,4 +135,11 @@ public class IssueServiceImpl implements IssueService {
         return issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(ExceptionMessage.DATA_NOT_FOUND));
     }
+
+    @Override
+    public void deleteIssue(Long issueId) {
+        if(issueRepository.deleteIssueById(issueId) == 0){
+            throw new NotFoundException(ExceptionMessage.DATA_NOT_FOUND);
+        }
+    }
 }

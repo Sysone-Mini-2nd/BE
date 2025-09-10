@@ -3,7 +3,9 @@ package com.sys.stm.domains.comment.domain;
 import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @Data
 public class Comment extends BaseEntity{

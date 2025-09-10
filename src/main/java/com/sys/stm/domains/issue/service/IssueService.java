@@ -13,4 +13,5 @@ public interface IssueService {
     IssueDetailResponseDTO createProjectIssue(Long projectId, IssueCreateRequestDTO issueCreateRequestDTO);
     IssueDetailResponseDTO updateIssueStatus(Long issueId, IssuePatchRequestDTO issuePatchRequestDTO);
     IssueDetailResponseDTO updateIssue(Long issueId, IssueUpdateRequestDTO issueUpdateRequestDTO);
+    void deleteIssue(Long issueId);
 }
