@@ -1,13 +1,11 @@
 package com.sys.stm.domains.messenger.service;
 
 import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
-import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomInfoResponseDto;
-import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +49,7 @@ public class ChatRoomService {
                             .recentMessage(roomInfo.getRecentMessage())
                             .unreadMessageCount(roomInfo.getUnreadMessageCount())
                             .memberNameList(participantsMap.get(roomInfo.getId()))
+                            .messageCreatedAt(roomInfo.getMessageCreatedAt())
                             .build();
 
                 })

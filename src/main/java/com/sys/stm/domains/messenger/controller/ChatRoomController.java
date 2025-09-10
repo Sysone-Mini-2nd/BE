@@ -25,7 +25,7 @@ public class ChatRoomController {
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
-    public ApiResponse<List<ChatRoomDataResponseDto>> findAllChatRoomsDataById(){
+    public ApiResponse<List<ChatRoomDataResponseDto>> findAllChatRoomsDataById() {
         //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long id = 1;
         return ApiResponse.ok(chatRoomService.findAllChatRoomsDataById(id));
@@ -52,11 +52,11 @@ public class ChatRoomController {
 
     // 채팅방 이름 or 최근 메시지 변경
     @PutMapping("/update/{id}")
-    public ApiResponse<?> updateChatRoom(@PathVariable long id, @RequestBody ChatRoomUpdateRequestDto dto){
+    public ApiResponse<?> updateChatRoom(@PathVariable long id, @RequestBody ChatRoomUpdateRequestDto dto) {
 
         int updateChatRoomCount = chatRoomService.updateChatRoom(id, dto);
 
-        if(updateChatRoomCount == 1)
+        if (updateChatRoomCount == 1)
             return ApiResponse.ok();
         else
             throw new RuntimeException("채팅방 업데이트에 실패했습니다. 다시 시도해주세요.");
@@ -68,9 +68,6 @@ public class ChatRoomController {
         long memberId = 1;
         int deleteCount = chatRoomParticipantService.deleteFromChatRoom(id, memberId);
 
-        if(deleteCount == 1)
-            return ApiResponse.ok();
-        else
-            throw new RuntimeException("해당 채팅방에 존재하지 않습니다.");
+        return ApiResponse.ok();
     }
 }
