@@ -46,6 +46,14 @@
             "updated_at" = #{updatedAt}
         WHERE "id" = #{id}
     </delete>
+
+    <delete id="deleteMeetingParticipantFromMeetingId" parameterType="com.sys.stm.domains.meeting.domain.MeetingParticipant">
+        UPDATE "meeting_participant"
+        SET
+            "is_deleted" = #{isDeleted},
+            "updated_at" = #{updatedAt}
+        WHERE "meeting_id" = #{meetingId}
+    </delete>
 <!--    &lt;!&ndash; 회의별 참석자 목록 조회 &ndash;&gt;-->
 <!--    <select id="findByMeetingId" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.MeetingParticipant">-->
 <!--        SELECT "id",-->
