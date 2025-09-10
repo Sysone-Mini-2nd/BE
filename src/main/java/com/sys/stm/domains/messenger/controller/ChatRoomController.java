@@ -6,6 +6,8 @@ import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
+import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
+import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
 import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
 import com.sys.stm.domains.messenger.service.ChatRoomService;
 import com.sys.stm.global.common.response.ApiResponse;
@@ -22,6 +24,7 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
     private final ChatRoomParticipantService chatRoomParticipantService;
+    private final ChatMessageServiceImpl chatMessageService;
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
@@ -29,6 +32,19 @@ public class ChatRoomController {
         //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long id = 1;
         return ApiResponse.ok(chatRoomService.findAllChatRoomsDataById(id));
+    }
+
+    // 채팅방의 모든 메시지 조회 (페이지네이션)
+    @GetMapping("/{chatRoomId}/messages")
+    public ApiResponse<List<ChatMessageResponseDto>> getChatRoomMessages(
+            @PathVariable long chatRoomId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        // TODO SecurityContextHolder에서 memberId 가져오기
+        long memberId = 1; // 임시 memberId
+
+        List<ChatMessageResponseDto> messages = chatMessageService.getMessagesByChatRoomId(chatRoomId, memberId, page, size);
+        return ApiResponse.ok(messages);
     }
 
     // 채팅방 생성
@@ -71,3 +87,4 @@ public class ChatRoomController {
         return ApiResponse.ok();
     }
 }
+
