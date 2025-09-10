@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.messenger.dao.ChatMessageRepository">
+
+    <select id="getMessagesByChatRoomId" resultType="com.sys.stm.domains.messenger.domain.Message">
+        SELECT "id", "chat_room_id", "sender_id", "type", "content", "file_url", "file_name", "file_size", "created_at", "updated_at"
+        FROM "message"
+        WHERE "chat_room_id" = #{id}
+        ORDER BY "created_at" DESC
+        OFFSET #{page} * #{size} ROWS
+        FETCH NEXT #{size} ROWS ONLY
+    </select>
+
+    <insert id="createMessage" parameterType="com.sys.stm.domains.messenger.domain.Message">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT "SEQ_MESSAGE"."NEXTVAL" FROM DUAL
+        </selectKey>
+        INSERT INTO "message"(
+            "id", "sender_id", "chat_room_id", "type", "content", 
+            "file_url", "file_name", "file_size", 
+            "created_at", "updated_at"
+        )
+        VALUES(
+            #{id, jdbcType=NUMERIC}, #{senderId, jdbcType=NUMERIC}, #{chatRoomId, jdbcType=NUMERIC},
+            #{type, jdbcType=VARCHAR}, #{content, jdbcType=CLOB},
+            #{fileUrl, jdbcType=VARCHAR}, #{fileName, jdbcType=VARCHAR}, #{fileSize, jdbcType=NUMERIC},
+            #{createdAt, jdbcType=TIMESTAMP}, #{updatedAt, jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+</mapper>
