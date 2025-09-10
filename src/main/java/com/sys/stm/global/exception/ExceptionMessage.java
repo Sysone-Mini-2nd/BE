@@ -40,6 +40,10 @@ public enum ExceptionMessage {
     INVALID_REQUEST("잘못된 요청입니다."),
     RESOURCE_NOT_FOUND("요청한 리소스를 찾을 수 없습니다."),
 
+    // 파일 관련
+    FILE_NOT_SELECTED("업로드할 파일을 선택해주세요."),
+    FILE_PROCESSING_ERROR("파일 처리 중 오류가 발생했습니다."),
+
     // 회의록 관련
     MEETING_NOT_FOUND("회의록 데이터 정보가 없음"),
     MEETING_PARTICIPANT_NOT_FOUND("회의록 참석자 데이터 정보가 없음"),
