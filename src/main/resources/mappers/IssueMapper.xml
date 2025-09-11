@@ -161,7 +161,7 @@
             "created_at", "updated_at", "is_deleted"
         )
         VALUES (
-                   #{projectId}, #{memberId},
+                   #{projectId}, #{memberId, jdbcType=NUMERIC},
                    #{title}, #{desc}, #{status},
                    #{startDate}, #{endDate}, #{priority},
                    #{createdAt}, #{updatedAt}, #{isDeleted}
@@ -169,10 +169,18 @@
     </insert>
 
     <!-- 작업(issue) 상태 변경 -->
-    <update id="updateIssueStatus" parameterType="com.sys.stm.domains.issue.domain.Issue">
+    <update id="updateIssuePlan" parameterType="com.sys.stm.domains.issue.domain.Issue">
         UPDATE "issue"
         SET
-            "status" = #{status},
+            <if test="status != null">
+                "status" = #{status},
+            </if>
+            <if test="startDate != null">
+                "start_date" = #{startDate},
+            </if>
+            <if test="endDate != null">
+                "end_date" = #{endDate},
+            </if>
             "updated_at" = #{updatedAt}
         WHERE "id" = #{id}
     </update>

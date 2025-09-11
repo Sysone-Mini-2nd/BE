@@ -76,9 +76,11 @@ public class IssueServiceImpl implements IssueService {
         Issue requestIssue = Issue.builder()
                 .id(issueId)
                 .status(issuePatchRequestDTO.getStatus())
+                .startDate(issuePatchRequestDTO.getStartDate())
+                .endDate(issuePatchRequestDTO.getEndDate())
                 .build();
 
-        if(issueRepository.updateIssueStatus(requestIssue) < 1){
+        if(issueRepository.updateIssuePlan(requestIssue) < 1){
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
 
