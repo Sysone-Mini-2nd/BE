@@ -101,12 +101,23 @@ public class ProjectServiceImpl implements ProjectService{
 
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
+        statusCountMap.put(ProjectStatus.TODO, 0);
+        statusCountMap.put(ProjectStatus.IN_PROGRESS, 0);
+        statusCountMap.put(ProjectStatus.PAUSED, 0);
+        statusCountMap.put(ProjectStatus.DONE, 0);
+
+        int delayedCount = 0;
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
             String pmName = pmMap.getOrDefault(p.getId(), "");
 
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
+
+            if (p.getEndDate() != null && p.getStatus() != ProjectStatus.DONE && p.getEndDate().before(now)) {
+                delayedCount++;
+            }
 
             ProjectSummaryResponseDTO dto = ProjectSummaryResponseDTO.builder()
                     .id(p.getId())
@@ -129,6 +140,7 @@ public class ProjectServiceImpl implements ProjectService{
                 .projects(dtoList)
                 .total(dtoList.size())
                 .statusCounts(statusCountMap)
+                .delayed(delayedCount)
                 .build();
     }
 
@@ -152,6 +164,10 @@ public class ProjectServiceImpl implements ProjectService{
 
         List<IssueCreateRequestDTO> dtoList = projectCreateRequestDTO.getIssues();
 
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime endDate = now.plusDays(1);
+
         for(IssueCreateRequestDTO dto : dtoList){
             issueRepository.createIssue(Issue.builder()
                             .projectId(requestProject.getId())
@@ -159,8 +175,8 @@ public class ProjectServiceImpl implements ProjectService{
                             .desc(dto.getDesc())
                             .status(IssueStatus.TODO)
                             .priority(IssuePriority.NORMAL)
-                            .startDate(Timestamp.valueOf(LocalDateTime.now()))
-                            .endDate(Timestamp.valueOf(LocalDateTime.now()))
+                            .startDate(Timestamp.valueOf(now))
+                            .endDate(Timestamp.valueOf(endDate))
                     .build());
         }
 
