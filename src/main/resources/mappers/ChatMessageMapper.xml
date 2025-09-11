@@ -3,11 +3,17 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.messenger.dao.ChatMessageRepository">
 
-    <select id="getMessagesByChatRoomId" resultType="com.sys.stm.domains.messenger.domain.Message">
-        SELECT "id", "chat_room_id", "sender_id", "type", "content", "file_url", "file_name", "file_size", "created_at", "updated_at"
-        FROM "message"
-        WHERE "chat_room_id" = #{id}
-        ORDER BY "created_at" DESC
+    <select id="getMessagesByChatRoomId" resultType="com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto">
+        SELECT
+            m."id", m."chat_room_id", m."sender_id", m."type", m."content",
+            m."file_url", m."file_name", m."file_size", m."created_at", m."updated_at",
+            (
+                (SELECT COUNT(*) FROM "chat_room_participants" crp WHERE crp."chat_room_id" = m."chat_room_id") -
+                (SELECT COUNT(*) FROM "message_status" ms WHERE ms."message_id" = m."id")
+            ) AS readCount
+        FROM "message" m
+        WHERE m."chat_room_id" = #{chatRoomId}
+        ORDER BY m."created_at" DESC
         OFFSET #{page} * #{size} ROWS
         FETCH NEXT #{size} ROWS ONLY
     </select>
@@ -29,4 +35,39 @@
         )
     </insert>
 
+    <select id="findMessagesByChatRoomIdAndCreatedAt" resultType="java.lang.Long">
+        SELECT
+        m."id"
+        FROM "message" m
+        WHERE m."chat_room_id" = #{chatRoomId} AND m."created_at" <![CDATA[<]]> #{time}
+    </select>
+
+    <select id="findAllMessageIdsByChatRoomId" resultType="java.lang.Long">
+        SELECT "id" FROM "message" WHERE "chat_room_id" = #{chatRoomId}
+    </select>
+
+    <select id="findCreatedAtByMessageId" resultType="java.sql.Timestamp">
+        SELECT "created_at" FROM "message" WHERE "id" = #{messageId}
+    </select>
+
+    <select id="findAllMessageIdsByChatRoomIdAndMessageId">
+        SELECT "id"
+        FROM "message"
+        WHERE "chat_room_id" = #{chatRoomId} AND
+        "created_at" <![CDATA[<]]> (SELECT "created_at" FROM "message" WHERE "id" = #{messageId})
+    </select>
+
+
+    <select id="findMessageById" resultType="com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto">
+        SELECT
+        m."id", m."chat_room_id", m."sender_id", m."type", m."content",
+        m."file_url", m."file_name", m."file_size", m."created_at", m."updated_at",
+        (
+        (SELECT COUNT(*) FROM "chat_room_participants" crp WHERE crp."chat_room_id" = m."chat_room_id") -
+        (SELECT COUNT(*) FROM "message_status" ms WHERE ms."message_id" = m."id")
+        ) AS readCount
+        FROM "message" m
+        WHERE m."id" = #{messageId}
+        ORDER BY m."created_at" DESC
+    </select>
 </mapper>

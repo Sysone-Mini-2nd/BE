@@ -10,6 +10,7 @@ import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
 import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
 import com.sys.stm.domains.messenger.service.ChatRoomService;
+import com.sys.stm.domains.messenger.service.MessageStatusService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
     private final ChatRoomParticipantService chatRoomParticipantService;
     private final ChatMessageServiceImpl chatMessageService;
+    private final MessageStatusService messageStatusService;
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
@@ -36,15 +38,25 @@ public class ChatRoomController {
 
     // 채팅방의 모든 메시지 조회 (페이지네이션)
     @GetMapping("/{chatRoomId}/messages")
-    public ApiResponse<List<ChatMessageResponseDto>> getChatRoomMessages(
+    public ApiResponse<List<ChatMessageResponseDto>> getMessagesByChatRoomId(
             @PathVariable long chatRoomId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        // TODO SecurityContextHolder에서 memberId 가져오기
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "50") int size) {
+        // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long memberId = 1; // 임시 memberId
 
         List<ChatMessageResponseDto> messages = chatMessageService.getMessagesByChatRoomId(chatRoomId, memberId, page, size);
         return ApiResponse.ok(messages);
+    }
+
+    // 채팅방 입장 시 모든 메시지를 읽음으로 표시
+    @GetMapping("/{chatRoomId}/mark-all-as-read")
+    public ApiResponse<?> markAllMessagesAsRead(@PathVariable long chatRoomId
+    ,@RequestParam Long lastReadMessageId) {
+        // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
+        long memberId = 1; // 임시 memberId
+        messageStatusService.markAllMessagesInChatRoomAsRead(chatRoomId, memberId, lastReadMessageId);
+        return ApiResponse.ok();
     }
 
     // 채팅방 생성
@@ -87,4 +99,3 @@ public class ChatRoomController {
         return ApiResponse.ok();
     }
 }
-

@@ -1,13 +1,15 @@
 package com.sys.stm.domains.messenger.service;
 
+import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
 import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 public class ChatRoomParticipantService {
 
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     public int createChatRoomParticipants(List<ChatRoomParticipant> chatRoomParticipants) {
         int result = 0;
@@ -33,6 +36,20 @@ public class ChatRoomParticipantService {
         return chatRoomParticipantRepository.deleteFromChatRoom(id, memberId);
     }
 
+    // 채팅방 입장 시 마지막 메시지 기반으로 읽음 처리
+    public void updateLastReadAtByMessageId(long chatRoomId, long memberId, Long lastReadMessageId) {
+        // 현재 시간
+        Timestamp readAt = Timestamp.valueOf(LocalDateTime.now());
+
+        if (lastReadMessageId != null) {
+            // 마지막 메시지 id가 생성된 시간 추출
+            Timestamp messageCreatedAt = chatMessageRepository.findCreatedAtByMessageId(lastReadMessageId);
+            if (messageCreatedAt != null) {
+                readAt = messageCreatedAt;
+            }
+        }
+        chatRoomParticipantRepository.updateLastReadAt(chatRoomId, memberId, readAt);
+    }
 
     public int findMemberByMemberId(Long memberId) {
         return chatRoomParticipantRepository.findMemberByMemberId(memberId);
@@ -50,4 +67,10 @@ public class ChatRoomParticipantService {
                         )
                 );
     }
+
+    public void updateLastReadAt(long chatRoomId, long memberId, Timestamp timestamp) {
+        chatRoomParticipantRepository.updateLastReadAt(chatRoomId, memberId, timestamp);
+    }
 }
+
+

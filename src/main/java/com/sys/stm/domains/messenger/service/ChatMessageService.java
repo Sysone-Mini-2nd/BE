@@ -13,6 +13,6 @@ public interface ChatMessageService {
     // 본인이 보낸 메시지 삭제
     int deleteMessagesById(long memberId, List<Long> messageIdList);
 
-    int createMessage(ChatMessageRequestDto message);
+    ChatMessageResponseDto createMessage(ChatMessageRequestDto message);
 
     }

@@ -16,4 +16,7 @@ public class ChatMessageResponseDto {
     private LocalDateTime createdAt;
     // 자신이 보낸 메시지인지 아닌지 
     private boolean isMine;
+    // 메시지를 안 읽은 사람 수 (readCount)
+    private long readCount;
 }
+
