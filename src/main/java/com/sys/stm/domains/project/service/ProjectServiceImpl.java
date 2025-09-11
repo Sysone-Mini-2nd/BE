@@ -16,6 +16,7 @@ import com.sys.stm.domains.project.dto.request.ProjectCreateRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectStatsResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectSummaryResponseDTO;
 import com.sys.stm.global.exception.BadRequestException;
@@ -50,16 +51,16 @@ public class ProjectServiceImpl implements ProjectService{
             throw new NotFoundException(ExceptionMessage.DATA_NOT_FOUND);
         }
 
-        List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // todo: List<Member>로 변경
+        List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(projectId);
 
         String pmName = "";
         long pmId = 0L;
-        for(Map<String, Object> member : membersByProjectId){
-            String role = member.get("ROLE").toString();
+        for(AssignedPersonDetailResponseDTO member : members){
+            AssignedPersonRole role = member.getRole();
 
-            if(role.equals("PM")){
-                pmName = member.get("NAME").toString();
-                pmId = Long.parseLong(member.get("ID").toString());
+            if(role.equals(AssignedPersonRole.PM)){
+                pmName = member.getName();
+                pmId = member.getId();
             }
         }
 
@@ -70,12 +71,12 @@ public class ProjectServiceImpl implements ProjectService{
                 .status(responseProject.getStatus())
                 .priority(responseProject.getPriority())
                 .totalMemberCount(
-                        membersByProjectId.size())
+                        members.size())
                 .startDate(responseProject.getStartDate())
                 .endDate(responseProject.getEndDate())
                 .pmId(pmId)
                 .pmName(pmName)
-                .members(membersByProjectId)
+                .members(members)
                 .build();
     }
 
@@ -199,14 +200,16 @@ public class ProjectServiceImpl implements ProjectService{
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
 
-        List<Map<String, Object>> currentMembers = assignedPersonRepository.findMembersByProjectId(projectId);
+        List<AssignedPersonDetailResponseDTO> currentMembers =
+                assignedPersonRepository.findMembersByProjectId(
+                projectId);
         long existingPmId = 0L;
         List<Long> existingUserIds = new ArrayList<>();
-        for (Map<String, Object> member : currentMembers) {
-            if ("PM".equals(member.get("ROLE").toString())) {
-                existingPmId = Long.parseLong(member.get("ID").toString());
+        for (AssignedPersonDetailResponseDTO member : currentMembers) {
+            if (member.getRole().equals(AssignedPersonRole.PM)) {
+                existingPmId = member.getId();
             } else {
-                existingUserIds.add(Long.parseLong(member.get("ID").toString()));
+                existingUserIds.add(member.getId());
             }
         }
 
@@ -246,7 +249,9 @@ public class ProjectServiceImpl implements ProjectService{
                     .stream()
                     .map(Issue::getId)
                     .toList();
-            issueRepository.unassignIssues(issueIds);
+            if(issueIds != null && !issueIds.isEmpty()){
+                issueRepository.unassignIssues(issueIds);
+            }
         }
 
         if (!membersToAdd.isEmpty()) {
@@ -262,14 +267,15 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     @Transactional
     public void deleteProject(Long projectId) {
-        List<Map<String, Object>> members = assignedPersonRepository.findMembersByProjectId(projectId);
+        List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(
+                projectId);
         projectRepository.deleteById(projectId);
 
         if(members!=null && !members.isEmpty()){
             assignedPersonRepository.deleteByProjectIdAndMemberIds(
                     projectId,
                     members.stream()
-                            .map(member -> Long.parseLong(member.get("ID").toString()))
+                            .map(AssignedPersonDetailResponseDTO::getId)
                             .toList()
             );
         }
