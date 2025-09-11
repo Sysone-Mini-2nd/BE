@@ -106,6 +106,7 @@
                 OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
                 )
             </if>
+        ORDER BY i."id"
     </select>
 
     <select id="findAllByProjectIdAndMemberId" resultMap="issueMap">
@@ -116,6 +117,7 @@
             "created_at", "updated_at"
         FROM "issue"
         WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
+        ORDER BY "id"
     </select>
 
     <select id="findAllByMemberId" resultMap="issueMap">
@@ -126,6 +128,7 @@
             "created_at", "updated_at"
         FROM "issue"
         WHERE "member_id" = #{memberId} AND "is_deleted" = 0
+        ORDER BY "id"
     </select>
 
     <select id="findAllByProjectId" resultMap="issueMap">
@@ -136,6 +139,7 @@
             "created_at", "updated_at"
         FROM "issue"
         WHERE "project_id" = #{projectId} AND "is_deleted" = 0
+        ORDER BY "id"
     </select>
 
     <update id="unassignIssues" parameterType="java.util.List">
