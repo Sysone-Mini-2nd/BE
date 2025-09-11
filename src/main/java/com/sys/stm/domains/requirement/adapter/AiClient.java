@@ -41,6 +41,7 @@ public class AiClient {
                     ]
                 }
                 
+                주의: desc에 대한 내용을 깔끔하게 바꾸되, 내용에 대한 별도의 조언이나 훈수는 하지 마세요.
                 """;
         Prompt prompt = new Prompt(template + jsonData);
 
