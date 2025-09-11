@@ -6,6 +6,9 @@ import com.sys.stm.domains.assignedPerson.domain.AssignedPersonRole;
 import com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO;
 import com.sys.stm.domains.issue.dao.IssueRepository;
 import com.sys.stm.domains.issue.domain.Issue;
+import com.sys.stm.domains.issue.domain.IssuePriority;
+import com.sys.stm.domains.issue.domain.IssueStatus;
+import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
 import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
@@ -18,6 +21,8 @@ import com.sys.stm.domains.project.dto.response.ProjectSummaryResponseDTO;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -144,6 +149,20 @@ public class ProjectServiceImpl implements ProjectService{
         }
 
         createAssignedPersons(projectCreateRequestDTO.getMemberIds(), projectCreateRequestDTO.getPmId(), requestProject.getId());
+
+        List<IssueCreateRequestDTO> dtoList = projectCreateRequestDTO.getIssues();
+
+        for(IssueCreateRequestDTO dto : dtoList){
+            issueRepository.createIssue(Issue.builder()
+                            .projectId(requestProject.getId())
+                            .title(dto.getTitle())
+                            .desc(dto.getDesc())
+                            .status(IssueStatus.TODO)
+                            .priority(IssuePriority.NORMAL)
+                            .startDate(Timestamp.valueOf(LocalDateTime.now()))
+                            .endDate(Timestamp.valueOf(LocalDateTime.now()))
+                    .build());
+        }
 
         return getProject(requestProject.getId());
     }
