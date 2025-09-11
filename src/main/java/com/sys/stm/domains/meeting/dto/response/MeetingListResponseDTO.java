@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 @Data
 @Builder
 public class MeetingListResponseDTO {
+    private Long id;
     private String title;
     private String writerName;
     private String type;
