@@ -6,6 +6,7 @@ import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
 import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.domains.project.dto.request.ProjectCreateRequestDTO;
+import com.sys.stm.domains.project.dto.request.ProjectListRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
@@ -46,8 +47,9 @@ public class ProjectController {
 
     @GetMapping("projects")
     public ApiResponse<ProjectListResponseDTO> getProjectsByMemberId(
+            ProjectListRequestDTO projectListRequestDTO
     ) {
-        return ApiResponse.ok(projectService.getProjectsByMemberId(1L)); // todo: UserDetails.getMember.getId() 변경
+        return ApiResponse.ok(projectService.getProjectsByMemberId(1L, projectListRequestDTO)); // todo: UserDetails.getMember.getId() 변경
     }
     
     @GetMapping("projects/{projectId}")
@@ -56,7 +58,7 @@ public class ProjectController {
     ) {
         return ApiResponse.ok(projectService.getProject(projectId));
     }
-    
+
     @PostMapping("projects")
     public ApiResponse<ProjectDetailResponseDTO> createProject(
             @RequestBody ProjectCreateRequestDTO projectCreateRequestDTO

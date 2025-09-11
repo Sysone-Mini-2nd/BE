@@ -31,7 +31,7 @@
         WHERE p."id" = #{projectId} AND p."is_deleted" = 0
     </select>
 
-    <select id="findAllByMemberId" parameterType="long" resultMap="projectResultMap">
+    <select id="findAllByMemberId" resultMap="projectResultMap">
         SELECT DISTINCT
             p."id",
             p."name",
@@ -52,6 +52,40 @@
                 OR
             ap."member_id" = #{memberId}
             )
+
+        <!-- 필터링 조건 추가 -->
+        <if test="dto.priority != null">
+            AND p."priority" = #{dto.priority}
+        </if>
+        <if test="dto.status != null">
+            AND p."status" = #{dto.status}
+        </if>
+        <if test="dto.search != null and dto.search != ''">
+            AND (
+            LOWER(p."name") LIKE '%' || LOWER(#{dto.search}) || '%' OR
+            LOWER(p."desc") LIKE '%' || LOWER(#{dto.search}) || '%'
+            )
+        </if>
+        ORDER BY
+        <choose>
+            <when test="dto.sortBy.name() == 'NAME'">
+                p."name"
+            </when>
+            <when test="dto.sortBy.name() == 'END_DATE'">
+                p."end_date"
+            </when>
+            <when test="dto.sortBy.name() == 'PRIORITY'">
+                CASE p."priority"
+                WHEN 'HIGH' THEN 1
+                WHEN 'NORMAL' THEN 2
+                WHEN 'LOW' THEN 3
+                ELSE 4
+                END
+            </when>
+            <otherwise>
+                p."id" DESC
+            </otherwise>
+        </choose>
     </select>
 
     <!-- 프로젝트 생성 -->

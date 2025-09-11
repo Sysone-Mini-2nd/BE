@@ -13,6 +13,7 @@ import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import com.sys.stm.domains.project.dto.request.ProjectCreateRequestDTO;
+import com.sys.stm.domains.project.dto.request.ProjectListRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
@@ -81,10 +82,10 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public ProjectListResponseDTO getProjectsByMemberId(Long memberId) {
-        List<Project> responseProjects = projectRepository.findAllByMemberId(memberId);
+    public ProjectListResponseDTO getProjectsByMemberId(Long memberId, ProjectListRequestDTO projectListRequestDTO) {
+        List<Project> responseProjects = projectRepository.findAllByMemberId(memberId, projectListRequestDTO);
 
-        if (responseProjects.isEmpty()) {
+        if (responseProjects == null || responseProjects.isEmpty()) {
             return ProjectListResponseDTO.builder().build();
         }
 
@@ -125,6 +126,7 @@ public class ProjectServiceImpl implements ProjectService{
                     .name(p.getName())
                     .desc(p.getDesc())
                     .status(p.getStatus())
+                    .priority(p.getPriority())
                     .progressRate(stats.getProgressRate())
                     .completedTasks(stats.getCompletedTasks())
                     .totalTasks(stats.getTotalTasks())
