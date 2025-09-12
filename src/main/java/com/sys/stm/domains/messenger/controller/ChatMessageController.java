@@ -4,12 +4,17 @@ import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.request.MessageReadRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.MessageReadResponseDto;
+import com.sys.stm.domains.messenger.dto.response.TotalUnreadCountResponseDto;
 import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
+import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
+import com.sys.stm.domains.messenger.service.ChatRoomService;
 import com.sys.stm.domains.messenger.service.MessageStatusService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Controller
@@ -18,6 +23,9 @@ public class ChatMessageController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageServiceImpl chatMessageServiceImpl;
     private final MessageStatusService messageStatusService;
+    private final ChatRoomParticipantService chatRoomParticipantService;
+    private final ChatRoomService chatRoomService;
+
 
     // 메시지 수신
     @MessageMapping("/send")
@@ -28,6 +36,26 @@ public class ChatMessageController {
 
         // 메시지를 구독자들(채팅방 참여자)에게 전송
         messagingTemplate.convertAndSend("/topic/chatroom/" + message.getChatRoomId(), chatMessageResponseDto);
+
+        // 3. 채팅방 참여자들에게 최신 전체 안읽음 카운트 전송
+        List<Long> participantIds =
+                chatRoomParticipantService.findParticipantIdsByRoomId(message.getChatRoomId());
+
+        for (Long participantId : participantIds) {
+            if (participantId.equals(message.getSenderId())) {
+                continue; // 메시지 보낸 사람은 제외
+            }
+
+            // 4. 해당 참여자의 전체 안 읽은 메시지 개수를 다시 계산
+            long totalUnreadCount = chatRoomService.getTotalUnreadCount(participantId);
+
+            // 5. 개인 큐로 최신 총합 전송
+            messagingTemplate.convertAndSend(
+                    "/queue/total-unread/" + participantId.toString()
+                    , new TotalUnreadCountResponseDto(totalUnreadCount)
+            );
+        }
+
     }
 
 

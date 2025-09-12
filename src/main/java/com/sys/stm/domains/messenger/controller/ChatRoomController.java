@@ -7,6 +7,7 @@ import com.sys.stm.domains.messenger.dto.request.ChatRoomInvitationRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
+import com.sys.stm.domains.messenger.dto.response.TotalUnreadCountResponseDto;
 import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
 import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
 import com.sys.stm.domains.messenger.service.ChatRoomService;
@@ -131,4 +132,15 @@ public class ChatRoomController {
 
         return ApiResponse.ok();
     }
+
+    // 전체 안 읽은 메시지 개수 조회
+    @GetMapping("/total-unread-count")
+    public ApiResponse<TotalUnreadCountResponseDto> getTotalUnreadCount() {
+        // TODO: SecurityContextHolder에서 현재 사용자 ID 가져오기
+        long memberId = 1L;
+
+        long totalCount = chatRoomService.getTotalUnreadCount(memberId);
+        return ApiResponse.ok(new TotalUnreadCountResponseDto(totalCount));
+    }
+
 }

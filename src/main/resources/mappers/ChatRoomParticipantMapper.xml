@@ -47,5 +47,9 @@
         JOIN "member" m ON crp."member_id" = m."id"
         WHERE crp."chat_room_id" = #{chatRoomId}
     </select>
+
+    <select id="findParticipantIdsByRoomId" resultType="long">
+        SELECT "member_id" FROM "chat_room_participants" WHERE "chat_room_id" = #{chatRoomId}
+    </select>
 </mapper>
 

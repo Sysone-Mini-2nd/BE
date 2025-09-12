@@ -110,4 +110,18 @@ public class ChatRoomService {
         List<String> nameList = chatRoomParticipantService.findNamesByChatRoomId(chatRoomId);
         messageStatusService.createInitialInvitationMessage(nameList, chatRoomId, memberId);
     }
+
+    public long getTotalUnreadCount(long memberId) {
+        // 기존의 안 읽은 메시지 수를 포함한 채팅방 정보 조회 메소드를 재사용
+        List<ChatRoomInfoResponseDto> roomInfos = chatRoomRepository.findChatRoomsByMemberId(memberId);
+
+        if (roomInfos.isEmpty()) {
+            return 0;
+        }
+
+        // 각 채팅방의 안 읽은 메시지 수를 모두 합산
+        return roomInfos.stream()
+                .mapToLong(ChatRoomInfoResponseDto::getUnreadMessageCount)
+                .sum();
+    }
 }

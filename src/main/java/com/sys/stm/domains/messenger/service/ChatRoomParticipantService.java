@@ -76,6 +76,10 @@ public class ChatRoomParticipantService {
 
         return chatRoomParticipantRepository.findNamesByChatRoomId(chatRoomId);
     }
+
+    public List<Long> findParticipantIdsByRoomId(long chatRoomId) {
+        return chatRoomParticipantRepository.findParticipantIdsByRoomId(chatRoomId);
+    }
 }
 
 
