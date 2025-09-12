@@ -13,6 +13,7 @@ import com.sys.stm.domains.messenger.service.ChatRoomService;
 import com.sys.stm.domains.messenger.service.MessageStatusService;
 import com.sys.stm.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class ChatRoomController {
     private final ChatRoomParticipantService chatRoomParticipantService;
     private final ChatMessageServiceImpl chatMessageService;
     private final MessageStatusService messageStatusService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
@@ -110,6 +112,22 @@ public class ChatRoomController {
         //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long memberId = 1;
         int deleteCount = chatRoomParticipantService.deleteFromChatRoom(chatRoomId, memberId);
+
+        return ApiResponse.ok();
+    }
+
+
+    @DeleteMapping("/messages/{messageId}")
+    public ApiResponse<?> deleteMessage(@PathVariable long messageId) {
+        // TODO: SecurityContextHolder에서 현재 사용자 ID 가져오기
+        long memberId = 1L;
+
+        // 1. 서비스 호출하여 메시지 삭제 처리 및 업데이트된 DTO 받기
+        ChatMessageResponseDto deletedMessageDto = chatMessageService.deleteMessage(memberId, messageId);
+
+        // 2. WebSocket으로 삭제된 메시지 정보 전송
+        messagingTemplate.convertAndSend("/topic/chatroom/" + deletedMessageDto.getChatRoomId(),
+                deletedMessageDto);
 
         return ApiResponse.ok();
     }

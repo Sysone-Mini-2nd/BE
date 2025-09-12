@@ -70,4 +70,15 @@
         WHERE m."id" = #{messageId}
         ORDER BY m."created_at" DESC
     </select>
+
+    <update id="softDeleteMessage">
+        UPDATE "message"
+        SET
+        "content" = '삭제된 메시지입니다.',
+        "type" = 'DELETED',
+        "file_url" = NULL,
+        "file_name" = NULL,
+        "file_size" = 0
+        WHERE "id" = #{messageId}
+    </update>
 </mapper>

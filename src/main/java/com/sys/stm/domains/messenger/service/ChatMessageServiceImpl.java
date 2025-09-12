@@ -5,11 +5,16 @@ import com.sys.stm.domains.messenger.domain.Message;
 import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto;
+import com.sys.stm.global.exception.ForbiddenException;
+import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.sys.stm.global.exception.ExceptionMessage.INSUFFICIENT_PERMISSION;
+import static com.sys.stm.global.exception.ExceptionMessage.INVALID_REQUEST;
 
 @RequiredArgsConstructor
 @Transactional
@@ -64,4 +69,41 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     public int deleteMessagesById(long memberId, List<Long> messageIdList) {
         return 0;
     }
+
+    /**
+     * 메시지를 삭제 처리하고, 업데이트된 메시지 정보를 반환합니다.
+     * @param memberId 삭제를 요청한 사용자 ID
+     * @param messageId 삭제할 메시지 ID
+     * @return 업데이트된 메시지 정보 DTO
+     */
+    @Transactional
+    public ChatMessageResponseDto deleteMessage(long memberId, long messageId) {
+        // 1. 메시지 정보를 가져와서 보낸 사람 확인
+        MessageQueryResultDto message = chatMessageRepository.findMessageById(messageId);
+        if (message == null) {
+            throw new NotFoundException(INVALID_REQUEST);
+        }
+        if (message.getSenderId() != memberId) {
+            throw new ForbiddenException(INSUFFICIENT_PERMISSION);
+        }
+
+        // 2. Soft Delete 실행
+        int updatedRows = chatMessageRepository.softDeleteMessage(messageId);
+        if (updatedRows == 0) {
+            throw new RuntimeException("메시지 삭제에 실패했습니다.");
+        }
+
+        // 3. 변경된 메시지 정보를 다시 조회하여 DTO로 반환
+        MessageQueryResultDto deletedMessage = chatMessageRepository.findMessageById(messageId);
+        return ChatMessageResponseDto.builder()
+                .id(deletedMessage.getId())
+                .chatRoomId(deletedMessage.getChatRoomId())
+                .content(deletedMessage.getContent())
+                .type(deletedMessage.getType())
+                .createdAt(deletedMessage.getCreatedAt())
+                .isMine(memberId == deletedMessage.getSenderId())
+                .readCount(deletedMessage.getReadCount() - 1)
+                .build();
+    }
+
 }

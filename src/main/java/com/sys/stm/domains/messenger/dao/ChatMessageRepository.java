@@ -19,5 +19,7 @@ public interface ChatMessageRepository {
     List<Long> findAllMessageIdsByChatRoomIdAndMessageId(@Param("chatRoomId") long chatRoomId, @Param("messageId") long lastReadMessageId);
 
     MessageQueryResultDto findMessageById(@Param("messageId") long id);
+
+    int softDeleteMessage(@Param("messageId") long messageId);
 }
 
