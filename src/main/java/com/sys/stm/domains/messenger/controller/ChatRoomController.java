@@ -2,8 +2,8 @@ package com.sys.stm.domains.messenger.controller;
 
 
 import com.sys.stm.domains.messenger.domain.ChatRoom;
-import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
+import com.sys.stm.domains.messenger.dto.request.ChatRoomInvitationRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
@@ -52,7 +52,7 @@ public class ChatRoomController {
     // 채팅방 입장 시 모든 메시지를 읽음으로 표시
     @GetMapping("/{chatRoomId}/mark-all-as-read")
     public ApiResponse<?> markAllMessagesAsRead(@PathVariable long chatRoomId
-    ,@RequestParam Long lastReadMessageId) {
+            , @RequestParam Long lastReadMessageId) {
         // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long memberId = 1; // 임시 memberId
         messageStatusService.markAllMessagesInChatRoomAsRead(chatRoomId, memberId, lastReadMessageId);
@@ -62,7 +62,6 @@ public class ChatRoomController {
     // 채팅방 생성
     @PostMapping("/create")
     public ApiResponse<String> createChatRoom(@RequestBody ChatRoomCreateRequestDto chatRoomCreateRequestDto) {
-
         // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
         long memberId = 1; // 임시 memberId
 
@@ -73,17 +72,26 @@ public class ChatRoomController {
         ChatRoom chatRoom = chatRoomCreateRequestDto.toChatRoom();
         chatRoomService.createChatRoom(chatRoom);
 
-        // 채팅방에 초대된 사원 리스트 저장
-        List<ChatRoomParticipant> chatRoomParticipants = chatRoomCreateRequestDto.toChatRoomParticipants(chatRoom.getId());
-        chatRoomParticipantService.createChatRoomParticipants(chatRoomParticipants);
-
-        // 채팅방에 초대된 사원들... 입장하셨습니다. 메시지 생성
-        List<String> nameList = chatRoomParticipantService.findNamesByChatRoomId(chatRoom.getId());
-        messageStatusService.createInitialInvitationMessage(nameList, chatRoom.getId(), memberId);
+        // 채팅방에 초대 기능 구현
+        chatRoomService.inviteMembers(chatRoomCreateRequestDto.getMemberIdList(), chatRoom.getId(), memberId);
 
         return ApiResponse.created();
-
     }
+
+    // 이미 존재하는 채팅방에 초대
+    @PostMapping("/invite")
+    public ApiResponse<?> inviteMembers(@RequestBody ChatRoomInvitationRequestDto chatRoomInvitationRequestDto) {
+        // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
+        long memberId = 1; // 임시 memberId
+
+        // 채팅방에 초대 기능 구현
+        chatRoomService.inviteMembers(chatRoomInvitationRequestDto.getMemberIdList()
+                , chatRoomInvitationRequestDto.getChatRoomId()
+                , memberId);
+
+        return ApiResponse.created();
+    }
+
 
     // 채팅방 이름 or 최근 메시지 변경
     @PutMapping("/update/{id}")

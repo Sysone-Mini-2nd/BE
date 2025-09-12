@@ -30,18 +30,4 @@ public class ChatRoomCreateRequestDto {
                 .type(this.type)
                 .build();
     }
-
-    public List<ChatRoomParticipant> toChatRoomParticipants(long chatRoomId){
-        Timestamp time = Timestamp.valueOf(LocalDateTime.now());
-        return memberIdList.stream()
-                .map((id) -> {
-                    return ChatRoomParticipant.builder()
-                            .chatRoomId(chatRoomId)
-                            .memberId(id)
-                            .lastReadAt(time)
-                            .build();
-                })
-                .toList();
-
-    }
 }
