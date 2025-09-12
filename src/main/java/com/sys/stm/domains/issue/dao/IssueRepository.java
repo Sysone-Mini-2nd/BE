@@ -19,7 +19,7 @@ public interface IssueRepository {
     void unassignIssues(@Param("issueIds") List<Long> issueIds);
     void deleteIssuesByIds(List<Long> issueIds);
     int createIssue(Issue issue);
-    int updateIssueStatus(Issue issue);
+    int updateIssuePlan(Issue issue);
     int updateIssue(Issue issue);
     int deleteIssueById(Long issueId);
 }

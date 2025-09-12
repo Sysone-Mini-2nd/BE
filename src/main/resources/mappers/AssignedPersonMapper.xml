@@ -18,16 +18,13 @@
         WHERE "id" = #{id}
     </update>
 
-    <select id="findMembersByProjectId" parameterType="long">
+    <select id="findMembersByProjectId" parameterType="long" resultType="com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO">
         SELECT
             m."id" AS id,
             m."account_id" AS accountId,
             ap."role" AS role,
             m."email" AS email,
             m."name" AS name,
---             m."last_login_at" AS lastLoginAt,
---             m."created_at" AS createdAt,
---             m."updated_at" AS updatedAt,
             TO_CHAR(m."last_login_at", 'YYYY-MM-DD HH24:MI:SS') AS lastLoginAt,
             TO_CHAR(m."created_at", 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
             TO_CHAR(m."updated_at", 'YYYY-MM-DD HH24:MI:SS') AS updatedAt,

@@ -18,6 +18,7 @@ public class IssueDetailResponseDTO {
     private Long id;
     private Long projectId;
     private Long memberId;
+    private String memberName;
     private String title;
     private String desc;
     private Timestamp startDate;

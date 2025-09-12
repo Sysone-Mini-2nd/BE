@@ -1,5 +1,6 @@
 package com.sys.stm.domains.project.dto.request;
 
+import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
 import com.sys.stm.domains.project.domain.ProjectPriority;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import java.sql.Timestamp;
@@ -22,4 +23,5 @@ public class ProjectCreateRequestDTO {
     private Timestamp endDate;
     private Long pmId;
     private List<Long> memberIds;
+    List<IssueCreateRequestDTO> issues;
 }

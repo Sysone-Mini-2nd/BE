@@ -6,18 +6,25 @@ import com.sys.stm.domains.assignedPerson.domain.AssignedPersonRole;
 import com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO;
 import com.sys.stm.domains.issue.dao.IssueRepository;
 import com.sys.stm.domains.issue.domain.Issue;
+import com.sys.stm.domains.issue.domain.IssuePriority;
+import com.sys.stm.domains.issue.domain.IssueStatus;
+import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
 import com.sys.stm.domains.project.dao.ProjectRepository;
 import com.sys.stm.domains.project.domain.Project;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import com.sys.stm.domains.project.dto.request.ProjectCreateRequestDTO;
+import com.sys.stm.domains.project.dto.request.ProjectListRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectStatsResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectSummaryResponseDTO;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,16 +52,16 @@ public class ProjectServiceImpl implements ProjectService{
             throw new NotFoundException(ExceptionMessage.DATA_NOT_FOUND);
         }
 
-        List<Map<String, Object>> membersByProjectId = assignedPersonRepository.findMembersByProjectId(projectId); // todo: List<Member>로 변경
+        List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(projectId);
 
         String pmName = "";
         long pmId = 0L;
-        for(Map<String, Object> member : membersByProjectId){
-            String role = member.get("ROLE").toString();
+        for(AssignedPersonDetailResponseDTO member : members){
+            AssignedPersonRole role = member.getRole();
 
-            if(role.equals("PM")){
-                pmName = member.get("NAME").toString();
-                pmId = Long.parseLong(member.get("ID").toString());
+            if(role.equals(AssignedPersonRole.PM)){
+                pmName = member.getName();
+                pmId = member.getId();
             }
         }
 
@@ -65,20 +72,20 @@ public class ProjectServiceImpl implements ProjectService{
                 .status(responseProject.getStatus())
                 .priority(responseProject.getPriority())
                 .totalMemberCount(
-                        membersByProjectId.size())
+                        members.size())
                 .startDate(responseProject.getStartDate())
                 .endDate(responseProject.getEndDate())
                 .pmId(pmId)
                 .pmName(pmName)
-                .members(membersByProjectId)
+                .members(members)
                 .build();
     }
 
     @Override
-    public ProjectListResponseDTO getProjectsByMemberId(Long memberId) {
-        List<Project> responseProjects = projectRepository.findAllByMemberId(memberId);
+    public ProjectListResponseDTO getProjectsByMemberId(Long memberId, ProjectListRequestDTO projectListRequestDTO) {
+        List<Project> responseProjects = projectRepository.findAllByMemberId(memberId, projectListRequestDTO);
 
-        if (responseProjects.isEmpty()) {
+        if (responseProjects == null || responseProjects.isEmpty()) {
             return ProjectListResponseDTO.builder().build();
         }
 
@@ -96,6 +103,13 @@ public class ProjectServiceImpl implements ProjectService{
 
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
+        statusCountMap.put(ProjectStatus.TODO, 0);
+        statusCountMap.put(ProjectStatus.IN_PROGRESS, 0);
+        statusCountMap.put(ProjectStatus.PAUSED, 0);
+        statusCountMap.put(ProjectStatus.DONE, 0);
+
+        int delayedCount = 0;
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
@@ -103,11 +117,16 @@ public class ProjectServiceImpl implements ProjectService{
 
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
 
+            if (p.getEndDate() != null && p.getStatus() != ProjectStatus.DONE && p.getEndDate().before(now)) {
+                delayedCount++;
+            }
+
             ProjectSummaryResponseDTO dto = ProjectSummaryResponseDTO.builder()
                     .id(p.getId())
                     .name(p.getName())
                     .desc(p.getDesc())
                     .status(p.getStatus())
+                    .priority(p.getPriority())
                     .progressRate(stats.getProgressRate())
                     .completedTasks(stats.getCompletedTasks())
                     .totalTasks(stats.getTotalTasks())
@@ -124,6 +143,7 @@ public class ProjectServiceImpl implements ProjectService{
                 .projects(dtoList)
                 .total(dtoList.size())
                 .statusCounts(statusCountMap)
+                .delayed(delayedCount)
                 .build();
     }
 
@@ -145,6 +165,24 @@ public class ProjectServiceImpl implements ProjectService{
 
         createAssignedPersons(projectCreateRequestDTO.getMemberIds(), projectCreateRequestDTO.getPmId(), requestProject.getId());
 
+        List<IssueCreateRequestDTO> dtoList = projectCreateRequestDTO.getIssues();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime endDate = now.plusDays(1);
+
+        for(IssueCreateRequestDTO dto : dtoList){
+            issueRepository.createIssue(Issue.builder()
+                            .projectId(requestProject.getId())
+                            .title(dto.getTitle())
+                            .desc(dto.getDesc())
+                            .status(IssueStatus.TODO)
+                            .priority(IssuePriority.NORMAL)
+                            .startDate(Timestamp.valueOf(now))
+                            .endDate(Timestamp.valueOf(endDate))
+                    .build());
+        }
+
         return getProject(requestProject.getId());
     }
 
@@ -164,14 +202,16 @@ public class ProjectServiceImpl implements ProjectService{
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
 
-        List<Map<String, Object>> currentMembers = assignedPersonRepository.findMembersByProjectId(projectId);
+        List<AssignedPersonDetailResponseDTO> currentMembers =
+                assignedPersonRepository.findMembersByProjectId(
+                projectId);
         long existingPmId = 0L;
         List<Long> existingUserIds = new ArrayList<>();
-        for (Map<String, Object> member : currentMembers) {
-            if ("PM".equals(member.get("ROLE").toString())) {
-                existingPmId = Long.parseLong(member.get("ID").toString());
+        for (AssignedPersonDetailResponseDTO member : currentMembers) {
+            if (member.getRole().equals(AssignedPersonRole.PM)) {
+                existingPmId = member.getId();
             } else {
-                existingUserIds.add(Long.parseLong(member.get("ID").toString()));
+                existingUserIds.add(member.getId());
             }
         }
 
@@ -211,7 +251,9 @@ public class ProjectServiceImpl implements ProjectService{
                     .stream()
                     .map(Issue::getId)
                     .toList();
-            issueRepository.unassignIssues(issueIds);
+            if(issueIds != null && !issueIds.isEmpty()){
+                issueRepository.unassignIssues(issueIds);
+            }
         }
 
         if (!membersToAdd.isEmpty()) {
@@ -227,14 +269,15 @@ public class ProjectServiceImpl implements ProjectService{
     @Override
     @Transactional
     public void deleteProject(Long projectId) {
-        List<Map<String, Object>> members = assignedPersonRepository.findMembersByProjectId(projectId);
+        List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(
+                projectId);
         projectRepository.deleteById(projectId);
 
         if(members!=null && !members.isEmpty()){
             assignedPersonRepository.deleteByProjectIdAndMemberIds(
                     projectId,
                     members.stream()
-                            .map(member -> Long.parseLong(member.get("ID").toString()))
+                            .map(AssignedPersonDetailResponseDTO::getId)
                             .toList()
             );
         }

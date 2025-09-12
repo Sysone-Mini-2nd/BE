@@ -19,7 +19,7 @@ public class ProjectListResponseDTO {
     @Builder.Default
     private List<ProjectSummaryResponseDTO> projects = new ArrayList<>();
     private Integer total;
-    @JsonAnyGetter
     @Builder.Default
     private Map<ProjectStatus, Integer> statusCounts = new HashMap<>();
+    private Integer delayed;
 }

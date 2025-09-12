@@ -1,5 +1,6 @@
 package com.sys.stm.domains.project.dto.response;
 
+import com.sys.stm.domains.project.domain.ProjectPriority;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import java.sql.Timestamp;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ public class ProjectSummaryResponseDTO {
     private String name;
     private String desc;
     private ProjectStatus status;
+    private ProjectPriority priority;
     private Double progressRate;     // 진행률(퍼센트)
     private Integer completedTasks;   // 완료된 작업 수
     private Integer totalTasks;       // 전체 작업 수

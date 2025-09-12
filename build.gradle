@@ -57,6 +57,9 @@ dependencies {
 
 	// JSON 처리
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// test용 H2 DB
+	testImplementation 'com.h2database:h2'
 }
 
 dependencyManagement {
