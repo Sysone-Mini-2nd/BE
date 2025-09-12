@@ -40,5 +40,12 @@
             </foreach>
         </if>
     </select>
+
+    <select id="findNamesByChatRoomId" resultType="java.lang.String">
+        SELECT m."name"
+        FROM "chat_room_participants" crp
+        JOIN "member" m ON crp."member_id" = m."id"
+        WHERE crp."chat_room_id" = #{chatRoomId}
+    </select>
 </mapper>
 

@@ -22,4 +22,6 @@ public interface ChatRoomParticipantRepository {
     List<ParticipantInfoResponseDto> findParticipantsByRoomIds(@Param("roomIds") List<Long> roomIds);
 
     int updateLastReadAt(@Param("chatRoomId") long chatRoomId, @Param("memberId") long memberId, @Param("readAt") Timestamp readAt);
+
+    List<String> findNamesByChatRoomId(@Param("chatRoomId") long chatRoomId);
 }

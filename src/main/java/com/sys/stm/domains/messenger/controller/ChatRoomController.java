@@ -63,6 +63,9 @@ public class ChatRoomController {
     @PostMapping("/create")
     public ApiResponse<String> createChatRoom(@RequestBody ChatRoomCreateRequestDto chatRoomCreateRequestDto) {
 
+        // TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
+        long memberId = 1; // 임시 memberId
+
         // 채팅방 검증(1. 1:1 메시지인데 채팅방 참여 인원이 여러 명인지, 2. 채팅방 참여 인원 id 리스트가 실제로 존재하는 사람인지)
         chatRoomService.validateChatRoomData(chatRoomCreateRequestDto);
 
@@ -73,6 +76,10 @@ public class ChatRoomController {
         // 채팅방에 초대된 사원 리스트 저장
         List<ChatRoomParticipant> chatRoomParticipants = chatRoomCreateRequestDto.toChatRoomParticipants(chatRoom.getId());
         chatRoomParticipantService.createChatRoomParticipants(chatRoomParticipants);
+
+        // 채팅방에 초대된 사원들... 입장하셨습니다. 메시지 생성
+        List<String> nameList = chatRoomParticipantService.findNamesByChatRoomId(chatRoom.getId());
+        messageStatusService.createInitialInvitationMessage(nameList, chatRoom.getId(), memberId);
 
         return ApiResponse.created();
 

@@ -3,6 +3,7 @@ package com.sys.stm.domains.messenger.service;
 import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
 import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.dao.MessageStatusRepository;
+import com.sys.stm.domains.messenger.domain.Message;
 import com.sys.stm.domains.messenger.domain.MessageStatus;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.session.ExecutorType;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -87,5 +89,28 @@ public class MessageStatusService {
                     .build()
             );
         }
+    }
+
+    public int createInitialInvitationMessage(List<String> nameList, long chatRoomId, long memberId) {
+
+        String content = makeInitialInvitationMessage(nameList);
+        // 메세지 만들기
+        Message message = Message.builder()
+                .senderId(memberId)
+                .chatRoomId(chatRoomId)
+                .type("SYSTEM")
+                .content(content)
+                .build();
+
+        return chatMessageRepository.createMessage(message);
+    }
+
+    private String makeInitialInvitationMessage(List<String> nameList) {
+        String message = nameList.stream()
+                .map(name -> name + "님")
+                .collect(Collectors.joining(", "))
+                + "이 입장하셨습니다.";
+
+        return message;
     }
 }

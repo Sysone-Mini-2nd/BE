@@ -71,6 +71,11 @@ public class ChatRoomParticipantService {
     public void updateLastReadAt(long chatRoomId, long memberId, Timestamp timestamp) {
         chatRoomParticipantRepository.updateLastReadAt(chatRoomId, memberId, timestamp);
     }
+
+    public List<String> findNamesByChatRoomId(long chatRoomId) {
+
+        return chatRoomParticipantRepository.findNamesByChatRoomId(chatRoomId);
+    }
 }
 
 
