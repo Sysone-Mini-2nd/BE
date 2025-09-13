@@ -22,4 +22,5 @@ public interface IssueRepository {
     int updateIssuePlan(Issue issue);
     int updateIssue(Issue issue);
     int deleteIssueById(Long issueId);
+    int countIssuesByProjectIdsAndEndDateWithinWeek(@Param("projectIds") List<Long> projectIds);
 }

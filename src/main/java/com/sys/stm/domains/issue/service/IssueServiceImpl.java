@@ -144,4 +144,19 @@ public class IssueServiceImpl implements IssueService {
             throw new NotFoundException(ExceptionMessage.DATA_NOT_FOUND);
         }
     }
+
+    @Override
+    public int countIssuesByProjectIdsAndEndDateWithinWeek(List<Long> projectIds) {
+        return issueRepository.countIssuesByProjectIdsAndEndDateWithinWeek(projectIds);
+    }
+
+    @Override
+    public List<Issue> findByProjectId(Long projectId) {
+        return issueRepository.findAllByProjectId(projectId);
+    }
+
+    @Override
+    public List<Issue> findByProjectIdAndMemberId(Long projectId, Long memberId) {
+        return issueRepository.findAllByProjectIdAndMemberId(projectId, memberId);
+    }
 }

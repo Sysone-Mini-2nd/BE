@@ -13,9 +13,8 @@ import java.util.Map;
 @Builder
 @Data
 public class DashBoardWeekendIssueResponseDTO {
-    Map<Integer, WeekendIssueDTO> weekendIssue;
-
-
+    // 요일별 이슈 리스트 (1=월요일, 2=화요일, ..., 7=일요일)
+    Map<Integer, List<WeekendIssueDTO>> weekendIssue;
 
     @Data
     @Builder

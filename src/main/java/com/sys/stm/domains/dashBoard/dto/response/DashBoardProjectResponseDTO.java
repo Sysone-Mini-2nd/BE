@@ -7,11 +7,13 @@ import java.sql.Timestamp;
 
 @Data
 @Builder
-public class DashBoardProjectResponseDTO {
-    Long projectId;
-    double todo;                // 앞으로 할 일
-    double progress;            // 진행중
-    double done;                // 완료
+public class DashBoardProjectResponseDTO {                  // 프로젝트 그래프
+    private Long id;
+    private Integer total;
+    private Integer todo;                // 앞으로 할 일
+    private Integer progress;            // 진행중
+    private Integer review;              // 리뷰중
+    private Integer done;                // 완료
 }
 
 
