@@ -33,9 +33,10 @@ public class NaverApiService {
         }
 
         try {
-            String fileLocation = "/Users/jiwon/Downloads/New_Sample/원천데이터/KconfSpeech_train_D20_wav_0/D20/G02/S000012/000351.wav";
-            File voiceFile = new File(fileLocation);
 //            File voiceFile = audioFile.getResource().getFile();
+
+            File voiceFile = File.createTempFile("audio_", ".wav");
+            audioFile.transferTo(voiceFile);
 
             String language = "Kor";        // 언어 코드 ( Kor, Jpn, Eng, Chn )
             String apiURL = "https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=" + language;

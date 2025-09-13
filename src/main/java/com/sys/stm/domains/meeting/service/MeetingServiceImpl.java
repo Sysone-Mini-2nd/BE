@@ -91,6 +91,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .writerName("작성자 Test")
                 .place(meeting.getPlace())
                 .content(meeting.getContent())
+                .type(meeting.getType())
                 .build();
 
         return response;
@@ -145,6 +146,7 @@ public class MeetingServiceImpl implements MeetingService {
         // TODO 유저 연동되면 수정
         List<MeetingListResponseDTO> response = meetings.stream()
                 .map(meeting -> MeetingListResponseDTO.builder()
+                        .id(meeting.getId())
                         .title(meeting.getTitle())
                         .writerName("test")
                         .type(meeting.getType())
