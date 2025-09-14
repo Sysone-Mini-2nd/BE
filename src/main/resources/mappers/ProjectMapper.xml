@@ -88,6 +88,23 @@
         </choose>
     </select>
 
+    <select id="findAllByOnlyMemberId" parameterType="long" resultMap="projectResultMap">
+        SELECT
+            p."id",
+            p."name",
+            p."desc",
+            p."status",
+            p."priority",
+            p."start_date",
+            p."end_date"
+        FROM "project" p JOIN "assigned_person" ap
+        ON ap."project_id" = p."id"
+        WHERE ap."member_id" = #{memberId}  AND p."is_deleted" = 0 AND ap."is_deleted" = 0
+    </select>
+
+
+
+
     <!-- 프로젝트 생성 -->
     <insert id="createProject" parameterType="com.sys.stm.domains.project.domain.Project">
         <selectKey keyProperty="id" resultType="long" order="AFTER">

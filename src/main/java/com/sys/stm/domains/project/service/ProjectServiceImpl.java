@@ -148,6 +148,59 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
+    public ProjectListResponseDTO getProjectsByMemberId(Long memberId) {
+        List<Project> responseProjects = projectRepository.findAllByOnlyMemberId(memberId);
+
+        if (responseProjects.isEmpty()) {
+            return ProjectListResponseDTO.builder().build();
+        }
+
+        List<Long> projectIds = responseProjects.stream()
+                .map(Project::getId)
+                .toList();
+
+        List<ProjectStatsResponseDTO> statsList = projectRepository.findProjectStatsByIds(projectIds);
+        Map<Long, ProjectStatsResponseDTO> statsMap = statsList.stream()
+                .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
+
+        List<PmInfoResponseDTO> pmInfoList = assignedPersonRepository.findPmsByProjectIds(projectIds);
+        Map<Long, String> pmMap = pmInfoList.stream()
+                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, PmInfoResponseDTO::getPmName));
+
+        List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
+        Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
+
+        for (Project p : responseProjects) {
+            ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
+            String pmName = pmMap.getOrDefault(p.getId(), "");
+
+            statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
+
+            ProjectSummaryResponseDTO dto = ProjectSummaryResponseDTO.builder()
+                    .id(p.getId())
+                    .name(p.getName())
+                    .desc(p.getDesc())
+                    .status(p.getStatus())
+                    .progressRate(stats.getProgressRate())
+                    .completedTasks(stats.getCompletedTasks())
+                    .totalTasks(stats.getTotalTasks())
+                    .totalMemberCount(stats.getTotalMemberCount())
+                    .startDate(p.getStartDate())
+                    .endDate(p.getEndDate())
+                    .pmName(pmName)
+                    .build();
+
+            dtoList.add(dto);
+        }
+
+        return ProjectListResponseDTO.builder()
+                .projects(dtoList)
+                .total(dtoList.size())
+                .statusCounts(statusCountMap)
+                .build();
+    }
+
+    @Override
     @Transactional
     public ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO) {
         Project requestProject = Project.builder()

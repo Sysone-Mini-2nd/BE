@@ -101,7 +101,7 @@
                 AND i."status" = #{issueListRequestDTO.status}
             </if>
             <if test="issueListRequestDTO.search != null and issueListRequestDTO.search != ''">
-                AND ( 
+                AND (
                 LOWER(i."title") LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
                 OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
                 )
@@ -117,7 +117,7 @@
             "created_at", "updated_at"
         FROM "issue"
         WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
-        ORDER BY "id"
+        ORDER BY "end_date" ASC
     </select>
 
     <select id="findAllByMemberId" resultMap="issueMap">
@@ -222,4 +222,23 @@
             #{issueId}
         </foreach>
     </update>
+
+    <select id="countIssuesByProjectIdsAndEndDateWithinWeek" resultType="int">
+        SELECT COUNT(*)
+        FROM "issue"
+        WHERE "is_deleted" = 0
+        <if test="projectIds != null and projectIds.size() > 0">
+            AND "project_id" IN
+            <foreach collection="projectIds" item="projectId" open="(" separator="," close=")">
+                #{projectId}
+            </foreach>
+        </if>
+        <if test="projectIds == null or projectIds.size() == 0">
+            AND 1 = 0
+        </if>
+        AND "end_date" IS NOT NULL
+        AND "end_date" BETWEEN SYSDATE AND SYSDATE + 7
+    </select>
+
+
 </mapper>

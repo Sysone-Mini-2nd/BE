@@ -1,21 +1,21 @@
 package com.sys.stm.domains.meeting.service;
 
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO;
+import com.sys.stm.domains.assignedPerson.service.AssignedPersonService;
 import com.sys.stm.domains.meeting.dao.MeetingRepository;
 import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
-import com.sys.stm.domains.meeting.domain.Participant;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
+import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
+import com.sys.stm.domains.member.service.MemberService;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.exception.ForbiddenException;
 import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +32,8 @@ public class MeetingServiceImpl implements MeetingService {
     private final NaverApiService naverApiService;
     private final MeetingAnalysisService meetingAnalysisService;
     private final MeetingReportService meetingReportService;
+    private final MemberService memberService;
+    private final AssignedPersonService assignedPersonService;
 
     @Override
     public void createMeeting(MeetingCreateRequestDTO request, MultipartFile audioFile, Long memberId, Long projectId) {
@@ -79,23 +81,26 @@ public class MeetingServiceImpl implements MeetingService {
         List<MeetingParticipantResponseDTO> participantResponse = meeting.getParticipants().stream()
                 .map(participant -> MeetingParticipantResponseDTO.builder()
                         .id(participant.getId())
-                        .name("test")
+                        .name(memberService.getMemberById(participant.getMemberId()).getName())
                         .build())
                 .toList();
 
+        MeetingAnalysisResponseDTO aiSummary = getMeetingAiData(meetingId);
 
         MeetingDetailResponseDTO response = MeetingDetailResponseDTO.builder()
                 .title(meeting.getTitle())
                 .progressDate(meeting.getProgressDate())
                 .participants(participantResponse)
-                .writerName("작성자 Test")
+                .writerName(memberService.getMemberById(meeting.getMemberId()).getName())
                 .place(meeting.getPlace())
                 .content(meeting.getContent())
                 .type(meeting.getType())
+                .aiSummary(aiSummary)
                 .build();
 
         return response;
     }
+
 
     @Transactional(readOnly = true)
     @Override
@@ -148,7 +153,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .map(meeting -> MeetingListResponseDTO.builder()
                         .id(meeting.getId())
                         .title(meeting.getTitle())
-                        .writerName("test")
+                        .writerName(memberService.getMemberById(meeting.getMemberId()).getName())
                         .type(meeting.getType())
                         .progressTime(meeting.getProgressDate())
                         .place(meeting.getPlace())
@@ -174,25 +179,68 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public void deleteMeeting(Long meetingId) {
+    public void deleteMeeting(Long meetingId, Long memberId) {
 
         Meeting meeting = validateMeetingExists(meetingId);
 
-        // 회의록 삭제
-        meetingRepository.deleteMeeting(meeting);
+        if(meeting.getMemberId().equals(memberId)) {
+            // 회의록 삭제
+            meetingRepository.deleteMeeting(meeting);
 
-        // 회의록에 연관된 데이터 삭제
-        // 1. 참석자 데이터 삭제
-        meeting.getParticipants().stream()
-                .forEach(
-                        meetingParticipant -> {
-                            meetingParticipantService.deleteParticipant(meetingParticipant.getId());
-                        }
-                );
-
+            // 회의록에 연관된 데이터 삭제
+            // 1. 참석자 데이터 삭제
+            meeting.getParticipants().stream()
+                    .forEach(
+                            meetingParticipant -> {
+                                meetingParticipantService.deleteParticipant(meetingParticipant.getId());
+                            }
+                    );
+        }else{
+            throw new ForbiddenException(ExceptionMessage.ACCESS_DENIED);
+        }
 
     }
 
+
+    @Override
+    public void updateMeeting(MeetingUpdateRequestDTO meetingUpdateRequestDTO, Long meetingId,  Long memberId) {
+        Meeting meeting = validateMeetingExists(meetingId).update(meetingUpdateRequestDTO);
+
+        if(meeting.getMemberId().equals(memberId)) {
+            // 회의록에 연관된 데이터 삭제
+            // 참석자 데이터 삭제
+            meeting.getParticipants().stream()
+                    .forEach(
+                            meetingParticipant -> {
+                                meetingParticipantService.deleteParticipant(meetingParticipant.getId());
+                            }
+                    );
+
+            // 생성된 회의록 ID 기준으로 참여자 Entity 리스트 생성
+            for (Long participantMemberId : meetingUpdateRequestDTO.getParticipantIds()) {
+                MeetingParticipant participant = MeetingParticipant.builder()
+                        .meetingId(meeting.getId())  // 생성된 Meeting ID 사용
+                        .memberId(participantMemberId)
+                        .build();
+
+                // 참여자 테이블 저장
+                meetingParticipantService.createParticipant(participant);
+            }
+
+            meetingRepository.createMeeting(meeting);
+
+        }else{
+            throw new ForbiddenException(ExceptionMessage.ACCESS_DENIED);
+        }
+    }
+
+    @Override
+    public List<AssignedPersonDashBoardResponseDTO> getProjectParticipant(Long projectId) {
+
+        List<AssignedPersonDashBoardResponseDTO> assignedPersonDashBoard =  assignedPersonService.findMembersNameByProjectId(projectId);
+
+        return assignedPersonDashBoard;
+    }
 
 
     @Override
@@ -228,14 +276,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         return result;
     }
-
-
-    @Override
-    public Long createMeetingWithParticipants(MeetingCreateRequestDTO request, Long projectId, Long memberId, List<Long> participantMemberIds) {
-        return 0L;
-    }
-
-
 
 
     protected Meeting validateMeetingExists(Long meetingId) {

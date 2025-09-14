@@ -9,6 +9,7 @@ import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
 public interface ProjectService {
     ProjectDetailResponseDTO getProject(Long projectId);
     ProjectListResponseDTO getProjectsByMemberId(Long memberId, ProjectListRequestDTO projectListRequestDTO);
+    ProjectListResponseDTO getProjectsByMemberId(Long memberId);
     ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO);
     ProjectDetailResponseDTO updateProject(Long projectId, ProjectUpdateRequestDTO projectUpdateRequestDTO);
     void deleteProject(Long projectId);

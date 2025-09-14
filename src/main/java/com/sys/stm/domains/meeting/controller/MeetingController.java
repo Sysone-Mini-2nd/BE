@@ -2,8 +2,10 @@ package com.sys.stm.domains.meeting.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingSendEmailRequestDTO;
+import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
 import com.sys.stm.domains.meeting.service.EmailService;
 import com.sys.stm.domains.meeting.service.MeetingService;
@@ -11,11 +13,13 @@ import com.sys.stm.domains.meeting.service.NaverApiService;
 import com.sys.stm.global.common.response.ApiResponse;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +39,8 @@ public class MeetingController {
 
     @PostMapping(value = "/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> receiveAndSummarizeAudio(
-            @RequestParam("audio") MultipartFile audioFile) {
+            @RequestParam("audio") MultipartFile audioFile
+    ) {
 
         // 파일 처리 로직은 Service 계층에 위임
         String summary = naverApiService.processAudio(audioFile);
@@ -44,13 +49,24 @@ public class MeetingController {
         return ApiResponse.ok(200, summary, "음성 파일 TEXT 변환 성공");
     }
 
+    // 프로젝트 팀 인원 전부 호출
+    @GetMapping("/{projectId}/participant")
+    public ApiResponse<List<AssignedPersonDashBoardResponseDTO>> getParticipants(
+            @PathVariable(name = "projectId") Long projectId
+    ){
+        List<AssignedPersonDashBoardResponseDTO> response = meetingService.getProjectParticipant(projectId);
+
+        return ApiResponse.ok(200, response, "해당 프로젝트에 배치된 모든 인원 호출 성공");
+    }
+
     // 회의록 생성
     @PostMapping(value = "/{projectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> createMeeting(
             @PathVariable Long projectId,
             @RequestParam("meetingData") String meetingDataJson,
-            @RequestParam(value = "audio", required = false) MultipartFile audioFile){
-        Long memberId = 1L;
+            @RequestParam(value = "audio", required = false) MultipartFile audioFile,
+            @AuthenticationPrincipal CustomUserDetails userDetails){
+        Long memberId = userDetails.getId();
 
         ObjectMapper mapper = new ObjectMapper();
         MeetingCreateRequestDTO request = null;
@@ -69,13 +85,16 @@ public class MeetingController {
 
     // 회의록 상세 조회
     @GetMapping("/{projectId}/{meetingId}")
-    public ApiResponse<MeetingDetailResponseDTO> getMeeting(@PathVariable(name = "projectId") Long projectId,  @PathVariable(name = "meetingId") Long meetingId) {
+    public ApiResponse<MeetingDetailResponseDTO> getMeeting(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingId) {
 
 
         MeetingDetailResponseDTO response = meetingService.getMeetingWithParticipants(projectId,meetingId);
 
         return ApiResponse.ok(200, response, "회의록 세부 조회 성공");
     }
+
 
     // 프로젝트별 회의 목록 조회 (Oracle ROWNUM 페이지네이션, 간소화된 MeetingListResponseDTO 반환)
     @GetMapping("/{projectId}")
@@ -94,15 +113,31 @@ public class MeetingController {
     @DeleteMapping("/{projectId}/{meetingId}")
     public ApiResponse<String> deleteMeeting(
             @PathVariable(name = "projectId") Long projectId,
-            @PathVariable(name = "meetingId") Long meetingId
+            @PathVariable(name = "meetingId") Long meetingId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        meetingService.deleteMeeting(meetingId);
+        Long memberId = userDetails.getId();
+        meetingService.deleteMeeting(meetingId, memberId);
 
         return ApiResponse.ok(200, null, "회의록 삭제가 완료되었습니다.");
     }
 
 
+    @PutMapping("/{projectId}/{meetingId}")
+    public ApiResponse<String> updateMeeting(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingId,
+            @RequestBody MeetingUpdateRequestDTO requestDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        Long memberId = userDetails.getId();
+        meetingService.updateMeeting(requestDTO,meetingId, memberId);
 
+        return ApiResponse.ok(200, null, "회의록 수정이 완료되었습니다.");
+    }
+
+
+    // AI 내용 정리
     @GetMapping("/{projectId}/{meetingId}/report")
     public ApiResponse<MeetingAnalysisResponseDTO> getMeetingReport(
             @PathVariable(name = "meetingId") Long meetingId
@@ -114,6 +149,7 @@ public class MeetingController {
         return ApiResponse.ok(200, response, "회의록 AI를 통한 정리 성공");
     }
 
+    // AI 문서 자동화 작성 및 파일 다운로드
     @GetMapping("/{projectId}/{meetingId}/report/download")
     public ResponseEntity<byte[]> downloadMeetingReport(
             @PathVariable(name = "projectId") Long projectId,
@@ -122,19 +158,19 @@ public class MeetingController {
         Long memberId = 1L;
 
         try {
-            // Service에서 Map으로 받아옴
             Map<String, Object> reportData = meetingService.downloadMeetingReport(projectId, meetingId);
 
             MeetingDetailResponseDTO meetingDetail = (MeetingDetailResponseDTO) reportData.get("meetingDetail");
             byte[] reportBytes = (byte[]) reportData.get("reportBytes");
             String fileName = (String) reportData.get("fileName");
 
-            // 한글 파일명 처리
+            // 한글 파일명 처리 - RFC 5987 형식으로 인코딩
             String encodedFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            String rfc5987FileName = "filename*=UTF-8''" + encodedFileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", encodedFileName);
+            headers.set("Content-Disposition", "attachment; " + rfc5987FileName);
             headers.setContentLength(reportBytes.length);
 
             return ResponseEntity.ok()
@@ -147,6 +183,7 @@ public class MeetingController {
     }
 
 
+    // 이메일 전송
     @PostMapping("/{projectId}/{meetingId}/email")
     public ApiResponse<String> sendEmail(
             @PathVariable(name = "projectId") Long projectId,
