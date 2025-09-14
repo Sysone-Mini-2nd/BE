@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.member.dao.MemberRepository">
+
+    <!-- 사용자 등록 -->
+    <insert id="insertMember" parameterType="com.sys.stm.domains.member.dto.request.MemberCreateRequestDTO">
+        INSERT INTO "member" (
+            "id", "account_id", "password", "role", "email", "name",
+            "last_login_at", "created_at", "updated_at", "is_deleted", "pic_url", "position"
+        ) VALUES (
+            "SEQ_MEMBER"."NEXTVAL", #{accountId}, #{password}, #{role}, #{email}, #{name},
+            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, #{picUrl}, #{position}
+        )
+    </insert>
+
+    <!-- ID로 사용자 조회 (응답 DTO용) -->
+    <select id="findMemberById" parameterType="long" resultType="com.sys.stm.domains.member.dto.response.MemberResponseDTO">
+        SELECT
+            "id", "account_id" as accountId, "role", "email", "name",
+            "last_login_at" as lastLoginAt, "pic_url" as picUrl, "position",
+            "created_at" as createdAt, "updated_at" as updatedAt
+        FROM "member"
+        WHERE "id" = #{id} AND "is_deleted" = 0
+    </select>
+
+    <!-- 모든 사용자 조회 (삭제되지 않은 사용자만) -->
+    <select id="findAllMembers" resultType="com.sys.stm.domains.member.dto.response.MemberResponseDTO">
+        SELECT
+            "id", "account_id" as accountId, "role", "email", "name",
+            "last_login_at" as lastLoginAt, "pic_url" as picUrl, "position",
+            "created_at" as createdAt, "updated_at" as updatedAt
+        FROM "member"
+        WHERE "is_deleted" = 0
+        ORDER BY "created_at" DESC
+    </select>
+
+    <!-- 사용자 수정 -->
+    <update id="updateMember">
+        UPDATE "member"
+        <set>
+            <if test="dto.email != null">"email" = #{dto.email},</if>
+            <if test="dto.name != null">"name" = #{dto.name},</if>
+            <if test="dto.picUrl != null">"pic_url" = #{dto.picUrl},</if>
+            <if test="dto.position != null">"position" = #{dto.position},</if>
+            <if test="dto.password != null">"password" = #{dto.password},</if>
+            <if test="dto.role != null">"role" = #{dto.role},</if>
+            "updated_at" = CURRENT_TIMESTAMP
+        </set>
+        WHERE "id" = #{id} AND "is_deleted" = 0
+    </update>
+
+    <!-- 사용자 삭제 (논리 삭제) -->
+    <update id="deleteMember" parameterType="long">
+        UPDATE "member"
+        SET "is_deleted" = 1, "updated_at" = CURRENT_TIMESTAMP
+        WHERE "id" = #{id} AND "is_deleted" = 0
+    </update>
+
+    <!-- account_id 중복 체크 -->
+    <select id="existsByAccountId" parameterType="string" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+        FROM "member"
+        WHERE "account_id" = #{accountId} AND "is_deleted" = 0
+    </select>
+
+    <!-- 로그인용 - account_id로 사용자 찾기 (전체 정보) -->
+    <select id="findByAccountId" parameterType="string" resultType="com.sys.stm.domains.member.domain.Member">
+        SELECT
+            "id", "account_id" as accountId, "password", "role", "email", "name",
+            "last_login_at" as lastLoginAt, "is_deleted" as isDeleted, "pic_url" as picUrl, "position",
+            "created_at" as createdAt, "updated_at" as updatedAt
+        FROM "member"
+        WHERE "account_id" = #{accountId} AND "is_deleted" = 0
+    </select>
+
+    <!-- 마지막 로그인 시간 업데이트 (인증용) -->
+    <update id="updateLastLoginTime">
+        UPDATE "member"
+        SET "last_login_at" = #{lastLoginAt}, "updated_at" = CURRENT_TIMESTAMP
+        WHERE "id" = #{id} AND "is_deleted" = 0
+    </update>
+
+</mapper>

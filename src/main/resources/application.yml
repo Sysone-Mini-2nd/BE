@@ -42,11 +42,15 @@ logging:
         stm: debug
 
 server:
-  port: 8080
+  port: 8081
 
 app:
   report:
     save-path: ./reports  # 기본값: 현재 디렉토리의 reports 폴더
+  jwt:
+    secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}  # 최소 32자 이상
+    expiration: 86400000  # 24시간 (밀리초)
+    refresh-expiration: 604800000  # 7일 (밀리초)
 
 mybatis:
   mapper-locations: classpath:/mappers/*.xml

@@ -8,15 +8,21 @@
         values(#{memberId},#{chatRoomId})
     </insert>
     <select id="findMemberByMemberId">
-        SELECT count("id")
+        SELECT count("id") AS memberSize
         FROM "member"
-        WHERE "id" = #{id}
+        WHERE "id" = #{memberId}
     </select>
     <delete id="deleteFromChatRoom">
         DELETE "chat_room_participants"
         WHERE "member_id" = #{memberId}
         AND "chat_room_id" = #{id}
     </delete>
+
+    <update id="updateLastReadAt">
+        UPDATE "chat_room_participants"
+        SET "last_read_at" = #{readAt}
+        WHERE "chat_room_id" = #{chatRoomId} AND "member_id" = #{memberId}
+    </update>
 
     <select id="findParticipantsByRoomIds" resultType="com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto">
         <!-- 리스트가 null이 아니고 비어있지 않을 때만 쿼리를 실행 -->
@@ -33,6 +39,17 @@
                 #{roomId, jdbcType=NUMERIC}
             </foreach>
         </if>
+    </select>
+
+    <select id="findNamesByChatRoomId" resultType="java.lang.String">
+        SELECT m."name"
+        FROM "chat_room_participants" crp
+        JOIN "member" m ON crp."member_id" = m."id"
+        WHERE crp."chat_room_id" = #{chatRoomId}
+    </select>
+
+    <select id="findParticipantIdsByRoomId" resultType="long">
+        SELECT "member_id" FROM "chat_room_participants" WHERE "chat_room_id" = #{chatRoomId}
     </select>
 </mapper>
 

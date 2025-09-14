@@ -13,6 +13,8 @@ public enum ExceptionMessage {
     AUTHENTICATION_FAILED("이메일 또는 비밀번호가 올바르지 않습니다."),
     INVALID_PRINCIPAL_TYPE("유효하지 않은 인증입니다"),
     AUTHENTICATION_MISSING("인증에 실패했습니다."),
+    LOGIN_FAILED("로그인에 실패했습니다."),
+    TOKEN_REFRESH_FAILED("토큰 갱신에 실패했습니다."),
 
     // 토큰 관련
     INVALID_TOKEN("유효하지 않은 토큰입니다."),
@@ -27,6 +29,12 @@ public enum ExceptionMessage {
     BUSINESSLICENSENUMBER_ALREADY_EXISTS("이미 사용 중인 사업자번호입니다."),
     INVALID_PASSWORD_FORMAT("비밀번호는 8자 이상, 영문/숫자/특수문자를 포함해야 합니다."),
     INCORRECT_PASSWORD("기존 비밀번호가 틀립니다 다시 입력해주세요"),
+
+    // Member CRUD 관련 추가
+    DUPLICATE_ACCOUNT_ID("이미 사용 중인 계정 ID입니다."),
+    MEMBER_CREATE_FAILED("회원 등록에 실패했습니다."),
+    MEMBER_UPDATE_FAILED("회원 정보 수정에 실패했습니다."),
+    MEMBER_DELETE_FAILED("회원 삭제에 실패했습니다."),
 
 
     // 권한 관련

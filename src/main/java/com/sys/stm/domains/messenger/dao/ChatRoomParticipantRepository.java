@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.sql.Timestamp;
 
 @Mapper
 public interface ChatRoomParticipantRepository {
@@ -19,5 +20,11 @@ public interface ChatRoomParticipantRepository {
     int deleteFromChatRoom(@Param("id") long id, @Param("memberId") long memberId);
 
     List<ParticipantInfoResponseDto> findParticipantsByRoomIds(@Param("roomIds") List<Long> roomIds);
+
+    int updateLastReadAt(@Param("chatRoomId") long chatRoomId, @Param("memberId") long memberId, @Param("readAt") Timestamp readAt);
+
+    List<String> findNamesByChatRoomId(@Param("chatRoomId") long chatRoomId);
+
+    List<Long> findParticipantIdsByRoomId(long chatRoomId);
 
 }

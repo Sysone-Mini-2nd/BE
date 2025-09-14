@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 @ToString
 @Getter
 @NoArgsConstructor
@@ -19,5 +21,7 @@ public class ChatRoomInfoResponseDto {
     private String recentMessage;
     // 해당 채팅방에서 아직 안 읽은 메시지 수
     private long unreadMessageCount;
+    // 최근 메시지가 생성된 시간
+    private LocalDateTime messageCreatedAt;
 
 }

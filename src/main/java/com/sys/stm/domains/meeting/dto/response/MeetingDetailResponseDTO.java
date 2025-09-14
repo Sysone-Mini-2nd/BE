@@ -1,6 +1,7 @@
 package com.sys.stm.domains.meeting.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sys.stm.domains.meeting.domain.MeetingType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class MeetingDetailResponseDTO {
     private String writerName;
     private String place;
     private String content;
+    private String type;
 }
 
 
