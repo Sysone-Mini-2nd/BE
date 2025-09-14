@@ -171,16 +171,18 @@ public class ProjectServiceImpl implements ProjectService{
 
         LocalDateTime endDate = now.plusDays(1);
 
-        for(IssueCreateRequestDTO dto : dtoList){
-            issueRepository.createIssue(Issue.builder()
-                            .projectId(requestProject.getId())
-                            .title(dto.getTitle())
-                            .desc(dto.getDesc())
-                            .status(IssueStatus.TODO)
-                            .priority(IssuePriority.NORMAL)
-                            .startDate(Timestamp.valueOf(now))
-                            .endDate(Timestamp.valueOf(endDate))
-                    .build());
+        if(dtoList != null){
+            for(IssueCreateRequestDTO dto : dtoList){
+                issueRepository.createIssue(Issue.builder()
+                        .projectId(requestProject.getId())
+                        .title(dto.getTitle())
+                        .desc(dto.getDesc())
+                        .status(IssueStatus.TODO)
+                        .priority(IssuePriority.NORMAL)
+                        .startDate(Timestamp.valueOf(now))
+                        .endDate(Timestamp.valueOf(endDate))
+                        .build());
+            }
         }
 
         return getProject(requestProject.getId());

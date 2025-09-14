@@ -54,13 +54,13 @@
             )
 
         <!-- 필터링 조건 추가 -->
-        <if test="dto.priority != null">
+        <if test="dto != null and dto.priority != null">
             AND p."priority" = #{dto.priority}
         </if>
-        <if test="dto.status != null">
+        <if test="dto != null and dto.status != null">
             AND p."status" = #{dto.status}
         </if>
-        <if test="dto.search != null and dto.search != ''">
+        <if test="dto != null and dto.search != null and dto.search != ''">
             AND (
             LOWER(p."name") LIKE '%' || LOWER(#{dto.search}) || '%' OR
             LOWER(p."desc") LIKE '%' || LOWER(#{dto.search}) || '%'
@@ -68,13 +68,13 @@
         </if>
         ORDER BY
         <choose>
-            <when test="dto.sortBy.name() == 'NAME'">
+            <when test="dto != null and dto.sortBy != null and dto.sortBy.name() == 'NAME'">
                 p."name"
             </when>
-            <when test="dto.sortBy.name() == 'END_DATE'">
+            <when test="dto != null and dto.sortBy != null and dto.sortBy.name() == 'END_DATE'">
                 p."end_date"
             </when>
-            <when test="dto.sortBy.name() == 'PRIORITY'">
+            <when test="dto != null and dto.sortBy != null and dto.sortBy.name() == 'PRIORITY'">
                 CASE p."priority"
                 WHEN 'HIGH' THEN 1
                 WHEN 'NORMAL' THEN 2
@@ -132,18 +132,19 @@
         SELECT
         p."id" AS id,
         COUNT(DISTINCT ap."member_id") AS totalMemberCount,
-        COUNT(i."id") AS totalTasks,
-        SUM(CASE WHEN i."status" = 'DONE' THEN 1 ELSE 0 END) AS completedTasks,
+        COUNT(DISTINCT i."id") AS totalTasks,
+        COUNT(DISTINCT CASE WHEN i."status" = 'DONE' THEN i."id" END) AS completedTasks,
         CASE
-        WHEN COUNT(i."id") = 0 THEN 0
-        ELSE (SUM(CASE WHEN i."status" = 'DONE' THEN 1 ELSE 0 END) * 100.0 / COUNT(i."id"))
+        WHEN COUNT(DISTINCT i."id") = 0 THEN 0
+        ELSE (COUNT(DISTINCT CASE WHEN i."status" = 'DONE' THEN i."id" END) * 100.0
+        / COUNT(DISTINCT i."id"))
         END AS progressRate
         FROM
         "project" p
-        LEFT JOIN
-        "assigned_person" ap ON p."id" = ap."project_id" AND ap."is_deleted" = 0
-        LEFT JOIN
-        "issue" i ON p."id" = i."project_id" AND i."is_deleted" = 0
+        LEFT JOIN "assigned_person" ap
+        ON p."id" = ap."project_id" AND ap."is_deleted" = 0
+        LEFT JOIN "issue" i
+        ON p."id" = i."project_id" AND i."is_deleted" = 0
         WHERE
         p."id" IN
         <foreach collection="projectIds" item="projectId" open="(" separator="," close=")">
@@ -152,5 +153,6 @@
         GROUP BY
         p."id"
     </select>
+
 
 </mapper>
