@@ -56,10 +56,11 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
     @Override
-        public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String memberRole) {
+        public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId) {
+
+        String  memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
 
         if(memberRole.equals("USER")) {
-            // TODO :: Issue 작업 끝나면 그쪽에 IssueLog 추가 / 삭제 기능 구현 그 전까지는 더미데이터 사용
             // 현재 유저에 할당된 이슈 데이터 가져옴
             List<Issue> issues = issueService.findByProjectIdAndMemberId(projectId,memberId);
 
@@ -83,9 +84,9 @@ public class DashBoardServiceImpl implements DashBoardService {
                     .issuesGraph(issueTrackingDto)
                     .weekendIssues(weekendIssues)
                     .priorities(priorityResponseDTO)
+                    .errorPriorities(null)
                     .build();
         }else{
-            // TODO :: Issue 작업 끝나면 그쪽에 IssueLog 추가 / 삭제 기능 구현 그 전까지는 더미데이터 사용
             // 현재 프로젝트에 할당된 이슈 데이터 가져옴
             List<Issue> issues = issueService.findByProjectId(projectId);
 
@@ -103,12 +104,24 @@ public class DashBoardServiceImpl implements DashBoardService {
             // 4. 우선순위 작업
             DashBoardIssuePriorityResponseDTO priorityResponseDTO = findDashBoardPriority(issues);
 
+            // 5. 에러발생 작업
+            List<DashBoardIssueErrorResponseDTO> errorResponseDTO = issues.stream()
+                    .filter(issue -> issue.getPriority().equals(IssuePriority.WARNING))
+                    .sorted(Comparator.comparing(Issue::getEndDate))  // endDate 기준 오름차순 정렬
+                    .map(issue -> DashBoardIssueErrorResponseDTO.builder()
+                            .id(issue.getId())
+                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .title(issue.getTitle())
+                            .build())
+                    .toList();
+
 
             return DashBoardResponseDTO.builder()
                     .projectGraph(projectDto)
                     .issuesGraph(issueTrackingDto)
                     .weekendIssues(weekendIssues)
                     .priorities(priorityResponseDTO)
+                    .errorPriorities(errorResponseDTO)
                     .build();
         }
 
@@ -306,28 +319,28 @@ public class DashBoardServiceImpl implements DashBoardService {
                     lowPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName("test")
+                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.NORMAL)){
                     normalPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName("test")
+                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.HIGH)){
                     highPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName("test")
+                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.WARNING)){
                     warningPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName("test")
+                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
                             .build());
 
             }

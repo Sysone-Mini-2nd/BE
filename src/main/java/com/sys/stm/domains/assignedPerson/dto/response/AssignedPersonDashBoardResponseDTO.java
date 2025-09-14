@@ -8,4 +8,5 @@ import lombok.Data;
 public class AssignedPersonDashBoardResponseDTO {
     private Long id;
     private String name;
+    private String position;
 }

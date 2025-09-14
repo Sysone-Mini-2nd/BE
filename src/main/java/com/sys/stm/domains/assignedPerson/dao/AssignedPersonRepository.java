@@ -17,6 +17,7 @@ public interface AssignedPersonRepository {
     List<Long> findMemberIdsByProjectId(Long projectId);
     List<PmInfoResponseDTO> findPmsByProjectIds(List<Long> projectIds);
     List<AssignedPersonDashBoardResponseDTO> findMembersNameByProjectId(Long projectId);
+    String findRoleByProjectIdAndMemberId(Long projectId, Long memberId);
 //    List<Member> findAllMemberByProjectId(Long projectId);
 //    Member findPmByProjectId;
 }

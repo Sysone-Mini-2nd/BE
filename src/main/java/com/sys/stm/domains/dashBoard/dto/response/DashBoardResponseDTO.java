@@ -16,4 +16,6 @@ public class DashBoardResponseDTO {                     // 대시보드 반환 �
     private DashBoardWeekendIssueResponseDTO weekendIssues = null;
     @Builder.Default
     private DashBoardIssuePriorityResponseDTO  priorities = null;
+    @Builder.Default
+    private List<DashBoardIssueErrorResponseDTO>  errorPriorities= null;
 }

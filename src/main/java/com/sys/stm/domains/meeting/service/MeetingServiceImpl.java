@@ -1,11 +1,14 @@
 package com.sys.stm.domains.meeting.service;
 
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO;
+import com.sys.stm.domains.assignedPerson.service.AssignedPersonService;
 import com.sys.stm.domains.meeting.dao.MeetingRepository;
 import com.sys.stm.domains.meeting.domain.Meeting;
 import com.sys.stm.domains.meeting.domain.MeetingParticipant;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
+import com.sys.stm.domains.member.service.MemberService;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.ForbiddenException;
 import com.sys.stm.global.exception.NotFoundException;
@@ -29,6 +32,8 @@ public class MeetingServiceImpl implements MeetingService {
     private final NaverApiService naverApiService;
     private final MeetingAnalysisService meetingAnalysisService;
     private final MeetingReportService meetingReportService;
+    private final MemberService memberService;
+    private final AssignedPersonService assignedPersonService;
 
     @Override
     public void createMeeting(MeetingCreateRequestDTO request, MultipartFile audioFile, Long memberId, Long projectId) {
@@ -76,19 +81,21 @@ public class MeetingServiceImpl implements MeetingService {
         List<MeetingParticipantResponseDTO> participantResponse = meeting.getParticipants().stream()
                 .map(participant -> MeetingParticipantResponseDTO.builder()
                         .id(participant.getId())
-                        .name("test")
+                        .name(memberService.getMemberById(participant.getMemberId()).getName())
                         .build())
                 .toList();
 
+        MeetingAnalysisResponseDTO aiSummary = getMeetingAiData(meetingId);
 
         MeetingDetailResponseDTO response = MeetingDetailResponseDTO.builder()
                 .title(meeting.getTitle())
                 .progressDate(meeting.getProgressDate())
                 .participants(participantResponse)
-                .writerName("작성자 Test")
+                .writerName(memberService.getMemberById(meeting.getMemberId()).getName())
                 .place(meeting.getPlace())
                 .content(meeting.getContent())
                 .type(meeting.getType())
+                .aiSummary(aiSummary)
                 .build();
 
         return response;
@@ -146,7 +153,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .map(meeting -> MeetingListResponseDTO.builder()
                         .id(meeting.getId())
                         .title(meeting.getTitle())
-                        .writerName("test")
+                        .writerName(memberService.getMemberById(meeting.getMemberId()).getName())
                         .type(meeting.getType())
                         .progressTime(meeting.getProgressDate())
                         .place(meeting.getPlace())
@@ -227,6 +234,13 @@ public class MeetingServiceImpl implements MeetingService {
         }
     }
 
+    @Override
+    public List<AssignedPersonDashBoardResponseDTO> getProjectParticipant(Long projectId) {
+
+        List<AssignedPersonDashBoardResponseDTO> assignedPersonDashBoard =  assignedPersonService.findMembersNameByProjectId(projectId);
+
+        return assignedPersonDashBoard;
+    }
 
 
     @Override

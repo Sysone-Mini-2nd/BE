@@ -40,10 +40,7 @@ public class DashBoardController {
     ){
         Long memberId = userDetails.getId();
 
-        String memberRole = userDetails.getRole();         // USER / MASTER
-
-
-        DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId, memberRole);
+        DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId);
 
 
         return ApiResponse.ok(200,response,"대시보드 데이터 호출 성공");
