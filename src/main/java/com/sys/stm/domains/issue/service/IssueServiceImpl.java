@@ -2,6 +2,7 @@ package com.sys.stm.domains.issue.service;
 
 import com.sys.stm.domains.issue.dao.IssueRepository;
 import com.sys.stm.domains.issue.domain.Issue;
+import com.sys.stm.domains.issue.domain.IssueStatus;
 import com.sys.stm.domains.issue.dto.request.IssueCreateRequestDTO;
 import com.sys.stm.domains.issue.dto.request.IssueListRequestDTO;
 import com.sys.stm.domains.issue.dto.request.IssuePatchRequestDTO;
@@ -9,11 +10,15 @@ import com.sys.stm.domains.issue.dto.request.IssueUpdateRequestDTO;
 import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
 import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 import com.sys.stm.domains.issue.dto.response.IssueSummaryResponseDTO;
+import com.sys.stm.domains.issueLog.domain.IssueLog;
+import com.sys.stm.domains.issueLog.service.IssueLogService;
 import com.sys.stm.domains.issueTag.dao.IssueTagRepository;
 import com.sys.stm.domains.issueTag.domain.IssueTag;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
+
+import java.sql.Timestamp;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class IssueServiceImpl implements IssueService {
     private final IssueRepository issueRepository;
     private final IssueTagRepository issueTagRepository;
+    private final IssueLogService issueLogService;
 
     @Override
     public IssueDetailResponseDTO getIssue(Long issueId) {
@@ -83,6 +89,15 @@ public class IssueServiceImpl implements IssueService {
         if(issueRepository.updateIssuePlan(requestIssue) < 1){
             throw new BadRequestException(ExceptionMessage.INVALID_REQUEST);
         }
+
+        IssueDetailResponseDTO issue = getIssue(issueId);
+
+        issueLogService.createIssueLog(IssueLog.builder()
+                        .issueId(issueId)
+                        .issueStatus(requestIssue.getStatus())
+                        .startDate(requestIssue.getStartDate() == null ? issue.getStartDate() : requestIssue.getStartDate())
+                        .endDate(requestIssue.getEndDate() == null ? issue.getEndDate() : requestIssue.getEndDate())
+                .build());
 
         return issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(ExceptionMessage.DATA_NOT_FOUND));

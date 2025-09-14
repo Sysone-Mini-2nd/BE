@@ -15,4 +15,6 @@ public interface IssueLogService {
     void createIssueLog(IssueLog issueLog);
 
     IssueLog findByIssueId(Long issueId);
+
+    void deleteIssueLog(IssueLog issueLog);
 }

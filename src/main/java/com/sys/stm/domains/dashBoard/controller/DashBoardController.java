@@ -4,7 +4,9 @@ import com.sys.stm.domains.dashBoard.dto.response.DashBoardProjectListResponseDT
 import com.sys.stm.domains.dashBoard.dto.response.DashBoardResponseDTO;
 import com.sys.stm.domains.dashBoard.service.DashBoardServiceImpl;
 import com.sys.stm.global.common.response.ApiResponse;
+import com.sys.stm.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +23,9 @@ public class DashBoardController {
 
     @GetMapping("")
     public ApiResponse<DashBoardProjectListResponseDTO> getProjectsByMemberId(
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // TODO 유저 연동시 변동
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
         DashBoardProjectListResponseDTO response = dashBoardService.getProjectsByMemberId(memberId);
 
@@ -33,13 +35,12 @@ public class DashBoardController {
 
     @GetMapping("/{projectId}")
     public ApiResponse<DashBoardResponseDTO> getDashBoard(
-            @PathVariable(name = "projectId") Long projectId
+            @PathVariable(name = "projectId") Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        // TODO 유저 연동시 변동
-        Long memberId = 1L;
+        Long memberId = userDetails.getId();
 
-        // TODO 유저 연동시 권한 체크 기능 추가
-        String memberRole = "ADMIN";         // USER / MASTER
+        String memberRole = userDetails.getRole();         // USER / MASTER
 
 
         DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId, memberRole);

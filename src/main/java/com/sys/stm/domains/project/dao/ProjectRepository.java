@@ -14,6 +14,9 @@ public interface ProjectRepository {
             @Param("memberId")Long memberId,
             @Param("dto") ProjectListRequestDTO projectListRequestDTO
     );
+    List<Project> findAllByOnlyMemberId(
+            @Param("memberId")Long memberId
+    );
     int createProject(Project project);
     int updateProject(Project project);
     void deleteById(Long projectId);

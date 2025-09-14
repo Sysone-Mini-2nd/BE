@@ -7,6 +7,7 @@ import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.exception.ForbiddenException;
 import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -171,52 +172,59 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public void deleteMeeting(Long meetingId) {
+    public void deleteMeeting(Long meetingId, Long memberId) {
 
         Meeting meeting = validateMeetingExists(meetingId);
 
-        // 회의록 삭제
-        meetingRepository.deleteMeeting(meeting);
+        if(meeting.getMemberId().equals(memberId)) {
+            // 회의록 삭제
+            meetingRepository.deleteMeeting(meeting);
 
-        // 회의록에 연관된 데이터 삭제
-        // 1. 참석자 데이터 삭제
-        meeting.getParticipants().stream()
-                .forEach(
-                        meetingParticipant -> {
-                            meetingParticipantService.deleteParticipant(meetingParticipant.getId());
-                        }
-                );
+            // 회의록에 연관된 데이터 삭제
+            // 1. 참석자 데이터 삭제
+            meeting.getParticipants().stream()
+                    .forEach(
+                            meetingParticipant -> {
+                                meetingParticipantService.deleteParticipant(meetingParticipant.getId());
+                            }
+                    );
+        }else{
+            throw new ForbiddenException(ExceptionMessage.ACCESS_DENIED);
+        }
+
     }
 
 
     @Override
-    public void updateMeeting(MeetingUpdateRequestDTO meetingUpdateRequestDTO, Long meetingId) {
+    public void updateMeeting(MeetingUpdateRequestDTO meetingUpdateRequestDTO, Long meetingId,  Long memberId) {
         Meeting meeting = validateMeetingExists(meetingId).update(meetingUpdateRequestDTO);
 
+        if(meeting.getMemberId().equals(memberId)) {
+            // 회의록에 연관된 데이터 삭제
+            // 참석자 데이터 삭제
+            meeting.getParticipants().stream()
+                    .forEach(
+                            meetingParticipant -> {
+                                meetingParticipantService.deleteParticipant(meetingParticipant.getId());
+                            }
+                    );
 
+            // 생성된 회의록 ID 기준으로 참여자 Entity 리스트 생성
+            for (Long participantMemberId : meetingUpdateRequestDTO.getParticipantIds()) {
+                MeetingParticipant participant = MeetingParticipant.builder()
+                        .meetingId(meeting.getId())  // 생성된 Meeting ID 사용
+                        .memberId(participantMemberId)
+                        .build();
 
-        // 회의록에 연관된 데이터 삭제
-        // 참석자 데이터 삭제
-        meeting.getParticipants().stream()
-                .forEach(
-                        meetingParticipant -> {
-                            meetingParticipantService.deleteParticipant(meetingParticipant.getId());
-                        }
-                );
+                // 참여자 테이블 저장
+                meetingParticipantService.createParticipant(participant);
+            }
 
-        // 생성된 회의록 ID 기준으로 참여자 Entity 리스트 생성
-        for (Long participantMemberId : meetingUpdateRequestDTO.getParticipantIds()) {
-            MeetingParticipant participant = MeetingParticipant.builder()
-                    .meetingId(meeting.getId())  // 생성된 Meeting ID 사용
-                    .memberId(participantMemberId)
-                    .build();
+            meetingRepository.createMeeting(meeting);
 
-            // 참여자 테이블 저장
-            meetingParticipantService.createParticipant(participant);
+        }else{
+            throw new ForbiddenException(ExceptionMessage.ACCESS_DENIED);
         }
-
-        meetingRepository.createMeeting(meeting);
-
     }
 
 

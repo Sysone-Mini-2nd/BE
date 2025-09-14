@@ -40,4 +40,9 @@ public class IssueLogServiceImpl implements IssueLogService {
                 .orElseThrow(() -> new NotFoundException(ExceptionMessage.ISSUE_LOG_NOT_FOUND));
     }
 
+    @Override
+    public void deleteIssueLog(IssueLog issueLog) {
+        issueLogRepository.deleteIssueLog(issueLog);
+    }
+
 }

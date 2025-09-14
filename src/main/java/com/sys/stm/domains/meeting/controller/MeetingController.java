@@ -9,14 +9,17 @@ import com.sys.stm.domains.meeting.dto.response.*;
 import com.sys.stm.domains.meeting.service.EmailService;
 import com.sys.stm.domains.meeting.service.MeetingService;
 import com.sys.stm.domains.meeting.service.NaverApiService;
+import com.sys.stm.domains.member.domain.Member;
 import com.sys.stm.global.common.response.ApiResponse;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
+import com.sys.stm.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,7 +39,8 @@ public class MeetingController {
 
     @PostMapping(value = "/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> receiveAndSummarizeAudio(
-            @RequestParam("audio") MultipartFile audioFile) {
+            @RequestParam("audio") MultipartFile audioFile
+    ) {
 
         // 파일 처리 로직은 Service 계층에 위임
         String summary = naverApiService.processAudio(audioFile);
@@ -50,8 +54,9 @@ public class MeetingController {
     public ApiResponse<String> createMeeting(
             @PathVariable Long projectId,
             @RequestParam("meetingData") String meetingDataJson,
-            @RequestParam(value = "audio", required = false) MultipartFile audioFile){
-        Long memberId = 1L;
+            @RequestParam(value = "audio", required = false) MultipartFile audioFile,
+            @AuthenticationPrincipal CustomUserDetails userDetails){
+        Long memberId = userDetails.getId();
 
         ObjectMapper mapper = new ObjectMapper();
         MeetingCreateRequestDTO request = null;
@@ -70,7 +75,9 @@ public class MeetingController {
 
     // 회의록 상세 조회
     @GetMapping("/{projectId}/{meetingId}")
-    public ApiResponse<MeetingDetailResponseDTO> getMeeting(@PathVariable(name = "projectId") Long projectId,  @PathVariable(name = "meetingId") Long meetingId) {
+    public ApiResponse<MeetingDetailResponseDTO> getMeeting(
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "meetingId") Long meetingId) {
 
 
         MeetingDetailResponseDTO response = meetingService.getMeetingWithParticipants(projectId,meetingId);
@@ -95,20 +102,25 @@ public class MeetingController {
     @DeleteMapping("/{projectId}/{meetingId}")
     public ApiResponse<String> deleteMeeting(
             @PathVariable(name = "projectId") Long projectId,
-            @PathVariable(name = "meetingId") Long meetingId
+            @PathVariable(name = "meetingId") Long meetingId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        meetingService.deleteMeeting(meetingId);
+        Long memberId = userDetails.getId();
+        meetingService.deleteMeeting(meetingId, memberId);
 
         return ApiResponse.ok(200, null, "회의록 삭제가 완료되었습니다.");
     }
+
 
     @PutMapping("/{projectId}/{meetingId}")
     public ApiResponse<String> updateMeeting(
             @PathVariable(name = "projectId") Long projectId,
             @PathVariable(name = "meetingId") Long meetingId,
-            @RequestBody MeetingUpdateRequestDTO requestDTO
+            @RequestBody MeetingUpdateRequestDTO requestDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        meetingService.updateMeeting(requestDTO,meetingId);
+        Long memberId = userDetails.getId();
+        meetingService.updateMeeting(requestDTO,meetingId, memberId);
 
         return ApiResponse.ok(200, null, "회의록 수정이 완료되었습니다.");
     }

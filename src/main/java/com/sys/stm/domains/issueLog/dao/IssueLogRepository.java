@@ -14,4 +14,6 @@ public interface IssueLogRepository {
     void createIssueLog(@Param("issueLog") IssueLog issueLog);
 
     Optional<IssueLog> findByIssueId(@Param("issueId") Long issueId);
+
+    void deleteIssueLog(IssueLog issueLog);
 }
