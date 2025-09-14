@@ -4,7 +4,9 @@ import com.sys.stm.domains.messenger.dto.request.MemberProfileUpdateRequestDto;
 import com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto;
 import com.sys.stm.domains.messenger.service.MemberProfileService;
 import com.sys.stm.global.common.response.ApiResponse;
+import com.sys.stm.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,10 +20,8 @@ public class MemberProfileController {
 
     // 본인 프로필 정보 조회
     @GetMapping("")
-    public ApiResponse<MemberProfileResponseDto> findMemberProfileById() {
-        //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
-        long id = 1;
-        MemberProfileResponseDto memberProfileResponseDto = memberProfileService.findMemberProfileById(id);
+    public ApiResponse<MemberProfileResponseDto> findMemberProfileById(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        MemberProfileResponseDto memberProfileResponseDto = memberProfileService.findMemberProfileById(userDetails.getId());
         return ApiResponse.ok(200, memberProfileResponseDto, "사원 프로필 조회 요청이 성공적으로 처리되었습니다.");
     }
 
@@ -41,15 +41,12 @@ public class MemberProfileController {
 
     // 본인 프로필 정보 수정
     @PutMapping("/update")
-    public ApiResponse<?> updateMemberProfile(@RequestBody MemberProfileUpdateRequestDto dto){
-        //TODO SecurityContextHolder에 있는 Member 객체 가져오기, 일단 지금은 member id 하드코딩
-        long id = 1;
-        int updateMemberCount = memberProfileService.updateMemberProfile(id, dto);
+    public ApiResponse<?> updateMemberProfile(@RequestBody MemberProfileUpdateRequestDto dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        int updateMemberCount = memberProfileService.updateMemberProfile(userDetails.getId(), dto);
 
         if(updateMemberCount == 1)
             return ApiResponse.ok();
         else
             throw new RuntimeException("프로필 업데이트에 실패했습니다. 다시 시도해주세요.");
     }
-
 }
