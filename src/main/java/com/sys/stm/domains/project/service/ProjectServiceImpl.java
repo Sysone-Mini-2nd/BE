@@ -291,6 +291,21 @@ public class ProjectServiceImpl implements ProjectService{
         }
     }
 
+    @Override
+    public ProjectDetailResponseDTO addProjectMember(Long projectId, Long memberId) {
+        assignedPersonRepository.createAssignedPerson(AssignedPerson.builder()
+                .projectId(projectId)
+                .memberId(memberId)
+                .role(AssignedPersonRole.USER)
+                .build());
+        return getProject(projectId);
+    }
+
+    @Override
+    public void deleteProjectMember(Long projectId, Long memberId) {
+        assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, List.of(memberId));
+    }
+
     private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {
         List<AssignedPerson> assignedPersons = new ArrayList<>();
 

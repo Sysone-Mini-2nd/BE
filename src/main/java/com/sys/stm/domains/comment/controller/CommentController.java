@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentController {
     private final CommentService commentService;
 
-    @PatchMapping("comment/{commentId}")
+    @PatchMapping("comments/{commentId}")
     public ApiResponse<CommentDetailResponseDTO> patchComment(
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequestDTO commentUpdateRequestDTO
@@ -26,7 +26,7 @@ public class CommentController {
         return ApiResponse.ok(commentService.updateCommentContent(commentId, commentUpdateRequestDTO));
     }
 
-    @DeleteMapping("comment/{commentId}")
+    @DeleteMapping("comments/{commentId}")
     public ApiResponse<String> deleteComment(
             @PathVariable Long commentId
     ) {

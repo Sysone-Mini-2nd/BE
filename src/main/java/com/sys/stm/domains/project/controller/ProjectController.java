@@ -7,6 +7,7 @@ import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 import com.sys.stm.domains.issue.service.IssueService;
 import com.sys.stm.domains.project.dto.request.ProjectCreateRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectListRequestDTO;
+import com.sys.stm.domains.project.dto.request.ProjectMemberChangeRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
@@ -84,6 +85,23 @@ public class ProjectController {
             @PathVariable Long projectId
     ) {
         projectService.deleteProject(projectId);
+        return ApiResponse.ok();
+    }
+
+    @PostMapping("projects/{projectId}/members")
+    public ApiResponse<ProjectDetailResponseDTO> addProjectMember(
+            @PathVariable Long projectId,
+            @RequestBody ProjectMemberChangeRequestDTO projectMemberChangeRequestDTO
+            ) {
+        return ApiResponse.ok(projectService.addProjectMember(projectId, projectMemberChangeRequestDTO.getMemberId()));
+    }
+
+    @DeleteMapping("projects/{projectId}/members")
+    public ApiResponse<String> deleteProjectMember(
+            @PathVariable Long projectId,
+            @RequestBody ProjectMemberChangeRequestDTO projectMemberChangeRequestDTO
+    ) {
+        projectService.deleteProjectMember(projectId, projectMemberChangeRequestDTO.getMemberId());
         return ApiResponse.ok();
     }
 }
