@@ -24,7 +24,7 @@
     <select id="findByIssueId" parameterType="long">
         SELECT *
         FROM "issue_log"
-        WHERE "issue_id" = #{issueId}
+        WHERE "issue_id" = #{issueId} AND "status" = 'DONE'
     </select>
 
 

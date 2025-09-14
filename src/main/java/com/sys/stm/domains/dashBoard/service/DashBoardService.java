@@ -4,7 +4,7 @@ import com.sys.stm.domains.dashBoard.dto.response.DashBoardProjectListResponseDT
 import com.sys.stm.domains.dashBoard.dto.response.DashBoardResponseDTO;
 
 public interface DashBoardService {
-    DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String memberRole);
+    DashBoardResponseDTO findDashBoard(Long memberId, Long projectId);
 
     DashBoardProjectListResponseDTO getProjectsByMemberId(Long memberId);
 }

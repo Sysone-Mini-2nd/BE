@@ -1,5 +1,6 @@
 package com.sys.stm.domains.meeting.service;
 
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
 import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.domains.meeting.dto.response.*;
@@ -25,4 +26,6 @@ public interface MeetingService {
     Map<String, Object> downloadMeetingReport(Long projectId, Long meetingId);
 
     void updateMeeting(MeetingUpdateRequestDTO meetingUpdateRequestDTO, Long meetingId, Long memberId);
+
+    List<AssignedPersonDashBoardResponseDTO> getProjectParticipant(Long projectId);
 }

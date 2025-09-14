@@ -19,4 +19,11 @@ public class AssignedPersonServiceImpl implements AssignedPersonService {
     public List<AssignedPersonDashBoardResponseDTO> findMembersNameByProjectId(Long projectId) {
         return assignedPersonRepository.findMembersNameByProjectId(projectId);
     }
+
+    @Override
+    public String findRoleByProjectIdAndMemberId(Long projectId, Long memberId) {
+        return assignedPersonRepository.findRoleByProjectIdAndMemberId(projectId, memberId);
+    }
+
+
 }

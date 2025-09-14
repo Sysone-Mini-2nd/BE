@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface AssignedPersonService {
     List<AssignedPersonDashBoardResponseDTO> findMembersNameByProjectId(Long projectId);
+    String findRoleByProjectIdAndMemberId(Long projectId, Long memberId);
 }
