@@ -27,8 +27,13 @@ public class MemberProfileController {
 
     // 모든 사원 프로필 정보 조회
     @GetMapping("/all")
-    public ApiResponse<List<MemberProfileResponseDto>> findAllMemberProfiles() {
-        List<MemberProfileResponseDto> memberProfileResponseDtoList = memberProfileService.findAllMemberProfiles();
+    public ApiResponse<List<MemberProfileResponseDto>> findAllMemberProfiles(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        long memberId = userDetails.getId();
+        List<MemberProfileResponseDto> memberProfileResponseDtoList = memberProfileService
+                .findAllMemberProfiles()
+                .stream()
+                .filter(profile -> profile.getId() != memberId) // 로그인한 사용자 제외
+                .toList();
         return ApiResponse.ok(200, memberProfileResponseDtoList, "전체 사원 프로필 조회 요청이 성공적으로 처리되었습니다.");
     }
 
@@ -44,7 +49,7 @@ public class MemberProfileController {
     public ApiResponse<?> updateMemberProfile(@RequestBody MemberProfileUpdateRequestDto dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         int updateMemberCount = memberProfileService.updateMemberProfile(userDetails.getId(), dto);
 
-        if(updateMemberCount == 1)
+        if (updateMemberCount == 1)
             return ApiResponse.ok();
         else
             throw new RuntimeException("프로필 업데이트에 실패했습니다. 다시 시도해주세요.");
