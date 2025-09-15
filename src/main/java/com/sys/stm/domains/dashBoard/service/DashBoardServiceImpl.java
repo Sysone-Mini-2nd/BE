@@ -66,7 +66,7 @@ public class DashBoardServiceImpl implements DashBoardService {
 
     String  memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
 
-    if(memberRole.equals("USER")) {
+    if(memberRole != null && memberRole.equals("USER")) {
         // 현재 유저에 할당된 이슈 데이터 가져옴
         List<Issue> issues = issueService.findByProjectIdAndMemberId(projectId,memberId);
 
