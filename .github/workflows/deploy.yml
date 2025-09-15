@@ -9,29 +9,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ... 1~5단계는 동일 ...
+      # 1. 소스 코드 체크아웃
       - name: Checkout
         uses: actions/checkout@v4
+
+      # 2. JDK 17 설치
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # 3. Gradle 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      # 4. Gradle로 빌드
       - name: Build with Gradle
         run: ./gradlew build
+
+      # 5. GCP 인증
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # 6. 배포 스크립트 파일 생성 (System Properties 사용 방식으로 변경)
+      # 6. 배포 스크립트 파일 생성
       - name: Create Deploy Script
         run: |
           JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" ! -name "*-plain.jar"))
           
-          # java -D 옵션을 사용하여 설정값을 직접 전달하는 스크립트를 생성합니다.
           cat > ./deploy.sh << EOF
           #!/bin/bash
           
@@ -40,9 +47,9 @@ jobs:
           pkill -f '$JAR_FILE_NAME' || true
           sleep 5
           
-          # 새 애플리케이션 시작 (java -D 옵션으로 모든 Secret 전달)
+          # 새 애플리케이션 시작 (찾아낸 Java 17 절대 경로 사용)
           echo "Starting new application..."
-          nohup /opt/oracle/product/21c/dbhomeXE/jdk/bin/java \
+          nohup /usr/lib/jvm/java-17-openjdk-17.0.16.0.8-2.0.1.el8.x86_64/bin/java \
             -Dspring.datasource.url='${{ secrets.DB_URL }}' \
             -Dspring.datasource.username='${{ secrets.DB_USERNAME }}' \
             -Dspring.datasource.password='${{ secrets.DB_PASSWORD }}' \
