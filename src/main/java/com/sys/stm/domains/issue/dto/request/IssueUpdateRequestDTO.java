@@ -3,6 +3,7 @@ package com.sys.stm.domains.issue.dto.request;
 import com.sys.stm.domains.issue.domain.IssuePriority;
 import com.sys.stm.domains.issue.domain.IssueStatus;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,5 +23,5 @@ public class IssueUpdateRequestDTO {
     private Timestamp endDate;
     private IssueStatus status;
     private IssuePriority priority;
-    private List<Long> tagIds;
+    private List<Long> tagIds = new ArrayList<>();
 }
