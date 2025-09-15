@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.issue.dao.IssueRepository">
+    <resultMap id="issueMap" type="com.sys.stm.domains.issue.domain.Issue">
+        <id property="id" column="id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- Detail 출력용 IssueDetailMap -->
+    <resultMap id="issueDetailMap" type="com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO">
+        <id property="id" column="id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="memberName" column="member_name"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <collection property="tags"
+                    ofType="com.sys.stm.domains.tag.domain.Tag"
+                    column="id"
+                    select="findTagsByIssueId"/>
+    </resultMap>
+
+    <!-- List 출력용 IssueSummaryMap -->
+    <resultMap id="issueSummaryMap" type="com.sys.stm.domains.issue.dto.response.IssueSummaryResponseDTO">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="desc" column="desc"/>
+        <result property="memberName" column="member_name"/>
+        <result property="memberId" column="member_id"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="dDay" column="d_day"/>
+
+        <collection property="tags"
+                    ofType="com.sys.stm.domains.tag.domain.Tag"
+                    column="id"
+                    select="findTagsByIssueId"/>
+    </resultMap>
+
+    <!-- 태그 할당용 쿼리 -->
+    <select id="findTagsByIssueId" parameterType="long" resultType="com.sys.stm.domains.tag.domain.Tag">
+        SELECT t."id", t."name"
+        FROM "tag" t
+                 JOIN "issue_tag" it ON t."id" = it."tag_id"
+        WHERE it."issue_id" = #{issueId}
+    </select>
+
+    <!-- 단건 조회 (detail) -->
+    <select id="findById" parameterType="Long" resultMap="issueDetailMap">
+        SELECT
+            i."id", i."project_id", i."member_id", m."name" AS member_name, i."title", i."desc",
+            i."start_date", i."end_date", i."status", i."priority",
+            i."created_at", i."updated_at", i."is_deleted"
+        FROM "issue" i LEFT JOIN "member" m ON i."member_id" = m."id"
+        WHERE i."id" = #{id} AND i."is_deleted" = 0
+    </select>
+
+    <!-- 목록 조회 -->
+    <select id="findAllFilteredSummary" resultMap="issueSummaryMap" parameterType="com.sys.stm.domains.issue.dto.request.IssueListRequestDTO">
+        SELECT
+            i."id",
+            i."title",
+            i."desc",
+            m."name" AS member_name,
+            i."member_id",
+            i."status",
+            i."priority",
+            i."start_date",
+            i."end_date",
+            TRUNC(CAST(i."end_date" AS DATE) - SYSDATE) AS d_day
+        FROM "issue" i
+            LEFT JOIN "member" m ON i."member_id" = m."id"
+        WHERE i."is_deleted" = 0
+            AND i."project_id" = #{projectId}
+            <if test="issueListRequestDTO.priority != null">
+                AND i."priority" = #{issueListRequestDTO.priority}
+            </if>
+            <if test="issueListRequestDTO.memberId != null">
+                AND i."member_id" = #{issueListRequestDTO.memberId}
+            </if>
+            <if test="issueListRequestDTO.status != null">
+                AND i."status" = #{issueListRequestDTO.status}
+            </if>
+            <if test="issueListRequestDTO.search != null and issueListRequestDTO.search != ''">
+                AND (
+                LOWER(i."title") LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
+                OR LOWER(i."desc")  LIKE '%' || LOWER(#{issueListRequestDTO.search}) || '%'
+                )
+            </if>
+        ORDER BY i."id"
+    </select>
+
+    <select id="findAllByProjectIdAndMemberId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
+        ORDER BY "end_date" ASC
+    </select>
+
+    <select id="findAllByMemberId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "member_id" = #{memberId} AND "is_deleted" = 0
+        ORDER BY "id"
+    </select>
+
+    <select id="findAllByProjectId" resultMap="issueMap">
+        SELECT
+            "id", "project_id", "member_id",
+            "title", "desc",
+            "start_date", "end_date", "status", "priority",
+            "created_at", "updated_at"
+        FROM "issue"
+        WHERE "project_id" = #{projectId} AND "is_deleted" = 0
+        ORDER BY "id"
+    </select>
+
+    <update id="unassignIssues" parameterType="java.util.List">
+        UPDATE "issue"
+        SET
+            "member_id" = NULL,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" IN
+        <foreach item="issueId" collection="issueIds" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </update>
+
+    <!-- 작업(issue) 생성 -->
+    <insert id="createIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SEQ_ISSUE.CURRVAL FROM dual
+        </selectKey>
+        INSERT INTO "issue"(
+            "project_id", "member_id",
+            "title", "desc", "status",
+            "start_date", "end_date", "priority",
+            "created_at", "updated_at", "is_deleted"
+        )
+        VALUES (
+                   #{projectId}, #{memberId, jdbcType=NUMERIC},
+                   #{title}, #{desc}, #{status},
+                   #{startDate}, #{endDate}, #{priority},
+                   #{createdAt}, #{updatedAt}, #{isDeleted}
+               )
+    </insert>
+
+    <!-- 작업(issue) 상태 변경 -->
+    <update id="updateIssuePlan" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        UPDATE "issue"
+        SET
+            <if test="status != null">
+                "status" = #{status},
+            </if>
+            <if test="startDate != null">
+                "start_date" = #{startDate},
+            </if>
+            <if test="endDate != null">
+                "end_date" = #{endDate},
+            </if>
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+
+    <!-- 작업(issue) 모든 데이터 변경 -->
+    <update id="updateIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">
+        UPDATE "issue"
+        SET
+            "member_id" = #{memberId, jdbcType=NUMERIC},
+            "title" = #{title},
+            "desc" = #{desc},
+            "status" = #{status},
+            "priority" = #{priority},
+            "start_date" = #{startDate},
+            "end_date" = #{endDate},
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+
+    <update id="deleteIssueById" parameterType="long">
+        UPDATE "issue"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" = #{id}
+    </update>
+
+    <update id="deleteIssuesByIds" parameterType="long">
+        UPDATE "issue"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = SYSTIMESTAMP
+        WHERE "id" IN
+        <foreach collection="issueIds" item="issueId" open="(" separator="," close=")">
+            #{issueId}
+        </foreach>
+    </update>
+
+    <select id="countIssuesByProjectIdsAndEndDateWithinWeek" resultType="int">
+        SELECT COUNT(*)
+        FROM "issue"
+        WHERE "is_deleted" = 0
+        <if test="projectIds != null and projectIds.size() > 0">
+            AND "project_id" IN
+            <foreach collection="projectIds" item="projectId" open="(" separator="," close=")">
+                #{projectId}
+            </foreach>
+        </if>
+        <if test="projectIds == null or projectIds.size() == 0">
+            AND 1 = 0
+        </if>
+        AND "end_date" IS NOT NULL
+        AND "end_date" BETWEEN SYSDATE AND SYSDATE + 7
+    </select>
+
+
+</mapper>

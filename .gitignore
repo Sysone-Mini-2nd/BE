@@ -187,4 +187,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,windows,intellij+all
+.env
+
+# End of https://www.toptal.com/developers/gitignore/api/macos,windows,intellij+all.env
+/src/main/resources/db/schema.sql
+/src/main/resources/db/schemaDelete.sql

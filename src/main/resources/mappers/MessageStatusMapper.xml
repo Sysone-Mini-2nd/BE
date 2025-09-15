@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.messenger.dao.MessageStatusRepository">
+
+    <select id="findReadMessageIdsByChatRoomIdAndReaderId" resultType="java.lang.Long">
+        SELECT ms."message_id"
+        FROM "message_status" ms
+        JOIN "message" m ON ms."message_id" = m."id"
+        WHERE m."chat_room_id" = #{chatRoomId} AND ms."reader_id" = #{readerId}
+    </select>
+
+    <insert id="createMessageStatus">
+        INSERT INTO "message_status"("id", "message_id", "reader_id", "read_at")
+        VALUES("SEQ_MESSAGE_STATUS"."NEXTVAL", #{messageStatus.messageId}, #{messageStatus.readerId}, #{messageStatus.readAt})
+    </insert>
+
+</mapper>

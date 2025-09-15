@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.messenger.dao.MemberProfileRepository">
+
+    <select id="findMemberProfileById"
+            resultType="com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto">
+        SELECT "id","name","position","email","pic_url"
+        FROM "member"
+        WHERE "id" = #{id}
+    </select>
+
+    <select id="findAllMemberProfiles"
+            resultType="com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto">
+        SELECT "id","name","position","email","pic_url"
+        FROM "member"
+    </select>
+
+    <select id="findMemberProfilesByEmailOrName"
+            resultType="com.sys.stm.domains.messenger.dto.response.MemberProfileResponseDto">
+        SELECT "id","name","position","email","pic_url"
+        FROM "member"
+        WHERE "name" LIKE #{keyword} OR "email" LIKE #{keyword}
+    </select>
+
+    <update id="updateMemberProfile">
+        UPDATE "member"
+            <set>
+                <if test="dto.name != null"> "name" = #{dto.name}, </if>
+                <if test="dto.email != null"> "email" = #{dto.email}, </if>
+                <if test="dto.position != null"> "position" = #{dto.position}, </if>
+                <if test="dto.picUrl != null"> "pic_url" = #{dto.picUrl}, </if>
+            </set>
+            WHERE "id" = #{id}
+    </update>
+
+</mapper>

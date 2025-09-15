@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.assignedPerson.dao.AssignedPersonRepository">
+    <insert id="createAssignedPerson" parameterType="com.sys.stm.domains.assignedPerson.domain.AssignedPerson">
+        INSERT INTO "assigned_person"(
+            "project_id", "member_id", "role", "created_at", "updated_at", "is_deleted"
+        ) VALUES (
+                     #{projectId}, #{memberId}, #{role}, #{createdAt}, #{updatedAt}, #{isDeleted}
+                 )
+    </insert>
+
+    <update id="deleteAssignedPerson" parameterType="com.sys.stm.domains.assignedPerson.domain.AssignedPerson">
+        UPDATE "assigned_person"
+        SET
+            "is_deleted" = 1,
+            "updated_at" = #{updatedAt}
+        WHERE "id" = #{id}
+    </update>
+
+    <select id="findMembersByProjectId" parameterType="long" resultType="com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO">
+        SELECT
+            m."id" AS id,
+            m."account_id" AS accountId,
+            ap."role" AS role,
+            m."email" AS email,
+            m."name" AS name,
+            TO_CHAR(m."last_login_at", 'YYYY-MM-DD HH24:MI:SS') AS lastLoginAt,
+            TO_CHAR(m."created_at", 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+            TO_CHAR(m."updated_at", 'YYYY-MM-DD HH24:MI:SS') AS updatedAt,
+            m."pic_url" AS picUrl,
+            m."position" AS position
+        FROM "project" p JOIN "assigned_person" ap ON p."id" = ap."project_id"
+                         JOIN "member" m ON ap."member_id" = m."id"
+        WHERE p."id" = #{projectId} AND p."is_deleted" = 0 AND ap."is_deleted" = 0
+    </select>
+
+    <delete id="deleteByProjectIdAndMemberIds">
+        UPDATE "assigned_person"
+        SET
+        "is_deleted" = 1,
+        "updated_at" = SYSTIMESTAMP
+        WHERE "project_id" = #{projectId}
+        AND "member_id" IN
+        <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
+            #{memberId}
+        </foreach>
+    </delete>
+
+    <!-- 프로젝트 ID 목록으로 PM 정보 일괄 조회 -->
+    <select id="findPmsByProjectIds" resultType="com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO">
+        SELECT
+        AP."project_id" AS projectId,
+        M."id" AS pmId,
+        M."name" AS pmName
+        FROM
+        "assigned_person" AP
+        JOIN
+        "member" M ON AP."member_id" = M."id"
+        WHERE
+        AP."role" = 'PM'
+        AND AP."is_deleted" = 0
+        AND M."is_deleted" = 0
+        AND AP."project_id" IN
+        <foreach item="projectId" collection="projectIds" open="(" separator="," close=")">
+            #{projectId}
+        </foreach>
+    </select>
+
+    <select id="findMembersNameByProjectId" parameterType="long" resultType="com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO">
+        SELECT
+            m."id" AS id,
+            m."name" AS name,
+            m."position" AS position
+        FROM "project" p
+                 JOIN "assigned_person" ap ON p."id" = ap."project_id"
+                 JOIN "member" m ON ap."member_id" = m."id"
+        WHERE p."id" = #{projectId}
+          AND p."is_deleted" = 0
+          AND ap."is_deleted" = 0
+    </select>
+
+    <select id="findRoleByProjectIdAndMemberId" parameterType="long" resultType="String">
+        SELECT
+            "role" AS role
+        FROM "assigned_person"
+        WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
+    </select>
+
+    <!--    <update id="updateRole" parameterType="long"> &lt;!&ndash; 파라미터 타입 고민 &ndash;&gt;-->
+<!--        UPDATE "assigned_person"-->
+<!--        SET "is_deleted" = 1-->
+<!--        WHERE "id" = #{id}-->
+<!--    </update>-->
+</mapper>

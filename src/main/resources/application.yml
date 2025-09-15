@@ -1,13 +1,37 @@
 spring:
   application:
     name: STM
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.2 # 응답의 창의성을 낮춰 일관된 결과를 유도
+
+
+  mail:
+    host: smtp.gmail.com  # Gmail 사용 시
+    port: 587
+    username: ${GOOGLE_EMAIL}
+    password: ${GOOGLE_EMAIL_KEY}  # 앱 비밀번호 사용
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+    default-encoding: UTF-8
+
 
   # DataBase
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
-    url: jdbc:oracle:thin:@localhost:1521/FREEPDB1
-    username: SCOTT
-    password: TIGER
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     type: com.zaxxer.hikari.HikariDataSource
 
 # mybatis sql ??
@@ -18,11 +42,31 @@ logging:
         stm: debug
 
 server:
-  port: 8080
+  port: 8081
 
-
+app:
+  report:
+    save-path: ./reports  # 기본값: 현재 디렉토리의 reports 폴더
+  jwt:
+    secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}  # 최소 32자 이상
+    expiration: 86400000  # 24시간 (밀리초)
+    refresh-expiration: 604800000  # 7일 (밀리초)
 
 mybatis:
   mapper-locations: classpath:/mappers/*.xml
   configuration:
     map-underscore-to-camel-case: true
+  plugins:
+    - com.sys.stm.global.common.interceptor.AuditingInterceptor
+
+
+cloud:
+  naver:
+    clova:
+      client: ${NAVER_CLIENT}
+      secret: ${NAVER_SECRET}
+
+# 이메일 설정
+email:
+  from: ${GOOGLE_EMAIL}
+  max-attachment-size: 10485760  # 10MB

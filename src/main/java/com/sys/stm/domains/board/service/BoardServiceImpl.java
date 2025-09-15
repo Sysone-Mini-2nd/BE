@@ -17,7 +17,7 @@ public class BoardServiceImpl implements BoardService {
     public int testCount() {
 
         Integer num =  boardRepository.getDeptCount()
-                .orElseThrow(() -> new NotFoundException(ExceptionMessage.DATA_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ExceptionMessage.MEETING_NOT_FOUND));
 
         return num;
     }

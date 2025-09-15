@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.messenger.dao.ChatRoomRepository">
+
+    <select id="findChatRoomsByMemberId" resultType="com.sys.stm.domains.messenger.dto.response.ChatRoomInfoResponseDto">
+        SELECT
+            cr."id" AS id,
+            cr."name" AS name,
+            cr."recent_message" AS recentMessage,
+            (SELECT COUNT(*)
+                FROM "message" m
+                WHERE m."chat_room_id" = crp."chat_room_id" AND m."created_at" > crp."last_read_at") AS unreadMessageCount,
+            (SELECT MAX(m2."created_at")
+                FROM "message" m2
+                WHERE m2."chat_room_id" = cr."id") AS messageCreatedAt
+        FROM
+            "chat_room_participants" crp
+        JOIN
+            "chat_room" cr ON crp."chat_room_id" = cr."id"
+        WHERE
+            crp."member_id" = #{memberId}
+        ORDER BY
+            cr."updated_at" DESC
+    </select>
+
+    <insert id="createChatRoom"
+            parameterType="com.sys.stm.domains.messenger.domain.ChatRoom">
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            SELECT "SEQ_CHAT_ROOM"."NEXTVAL" FROM DUAL
+        </selectKey>
+        INSERT INTO "chat_room"("id","name", "type", "created_at", "updated_at")
+        VALUES(#{id},#{name},#{type},#{createdAt},#{updatedAt})
+    </insert>
+
+    <update id="updateChatRoom">
+        UPDATE "chat_room"
+        <set>
+            <if test="dto.name != null">"name" = #{dto.name},</if>
+            <if test="dto.recentMessage != null">"recent_message" = #{dto.recentMessage},</if>
+        </set>
+        WHERE "id" = #{id}
+    </update>
+    
+    <update id="updateRecentMessage">
+        UPDATE "chat_room"
+        <set>
+            <if test="msg != null">"recent_message" = #{msg},</if>
+        </set>
+        WHERE "id" = #{chatRoomId}
+    </update>
+
+</mapper>
