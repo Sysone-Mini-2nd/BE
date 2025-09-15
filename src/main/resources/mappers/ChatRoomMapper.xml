@@ -41,5 +41,13 @@
         </set>
         WHERE "id" = #{id}
     </update>
+    
+    <update id="updateRecentMessage">
+        UPDATE "chat_room"
+        <set>
+            <if test="msg != null">"recent_message" = #{msg},</if>
+        </set>
+        WHERE "id" = #{chatRoomId}
+    </update>
 
 </mapper>

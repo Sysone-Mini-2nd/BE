@@ -1,7 +1,13 @@
 package com.sys.stm.domains.messenger.service;
 
+import com.sys.stm.domains.member.dao.MemberRepository;
+import com.sys.stm.domains.member.dto.response.MemberResponseDTO;
 import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
+import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
+import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
+import com.sys.stm.domains.messenger.dao.MessageStatusRepository;
 import com.sys.stm.domains.messenger.domain.Message;
+import com.sys.stm.domains.messenger.domain.MessageStatus;
 import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto;
@@ -11,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-import static com.sys.stm.global.exception.ExceptionMessage.INSUFFICIENT_PERMISSION;
-import static com.sys.stm.global.exception.ExceptionMessage.INVALID_REQUEST;
+import static com.sys.stm.global.exception.ExceptionMessage.*;
 
 @RequiredArgsConstructor
 @Transactional
@@ -22,6 +30,10 @@ import static com.sys.stm.global.exception.ExceptionMessage.INVALID_REQUEST;
 public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
+    private final MemberRepository memberRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final MessageStatusRepository messageStatusRepository;
+    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     // DB에 메시지 저장
     @Override
@@ -29,17 +41,34 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         Message message = chatMessageRequestDto.toMessage();
         chatMessageRepository.createMessage(message);
+        chatRoomRepository.updateRecentMessage(chatMessageRequestDto.getChatRoomId(), message.getContent());
+        chatRoomParticipantRepository.updateLastReadAt(chatMessageRequestDto.getChatRoomId(),chatMessageRequestDto.getSenderId()
+        , Timestamp.valueOf(LocalDateTime.now()));
+        messageStatusRepository.createMessageStatus(MessageStatus.builder()
+                        .readerId(chatMessageRequestDto.getSenderId())
+                        .readAt(LocalDateTime.now())
+                        .messageId(message.getId())
 
+                .build());
         MessageQueryResultDto messageQueryResultDto = chatMessageRepository.findMessageById(message.getId());
+        Optional<MemberResponseDTO> temp = memberRepository.findMemberById(messageQueryResultDto.getSenderId());
+        String senderName = "";
+        if(temp.isPresent()) {
+            senderName = (messageQueryResultDto.getSenderId() == 0) ? "" : temp.get().getName();
+        }
+
+
         return ChatMessageResponseDto.builder()
                 .id(messageQueryResultDto.getId())
                 .chatRoomId(messageQueryResultDto.getChatRoomId())
+                .senderName(senderName)
+                .type(messageQueryResultDto.getType())
                 .content(messageQueryResultDto.getContent())
                 .fileUrl(messageQueryResultDto.getFileUrl())
-                .type(messageQueryResultDto.getType())
                 .createdAt(messageQueryResultDto.getCreatedAt())
                 .isMine(chatMessageRequestDto.getSenderId() == messageQueryResultDto.getSenderId())
                 .readCount(messageQueryResultDto.getReadCount() - 1)
+                .senderId(chatMessageRequestDto.getSenderId())
                 .build();
 
     }
@@ -51,15 +80,22 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         List<MessageQueryResultDto> messageList = chatMessageRepository.findMessagesByChatRoomId(chatRoomId, page, size);
 
         return messageList.stream().map((messageQueryResultDto) -> {
+            Optional<MemberResponseDTO> temp = memberRepository.findMemberById(messageQueryResultDto.getSenderId());
+            String senderName = "";
+            if(temp.isPresent()) {
+                senderName = (messageQueryResultDto.getSenderId() == 0) ? "" : temp.get().getName();
+            }
             return ChatMessageResponseDto.builder()
                     .id(messageQueryResultDto.getId())
                     .chatRoomId(messageQueryResultDto.getChatRoomId())
+                    .senderName(senderName) // senderName 필드 채우기
+                    .type(messageQueryResultDto.getType())
                     .content(messageQueryResultDto.getContent())
                     .fileUrl(messageQueryResultDto.getFileUrl())
-                    .type(messageQueryResultDto.getType())
                     .createdAt(messageQueryResultDto.getCreatedAt())
-                    .isMine(memberId == messageQueryResultDto.getSenderId())
+                    .isMine(memberId == messageQueryResultDto.getSenderId()) // isMine 필드 할당
                     .readCount(messageQueryResultDto.getReadCount() - 1)
+                    .senderId(messageQueryResultDto.getSenderId())
                     .build();
         }).toList();
     }
