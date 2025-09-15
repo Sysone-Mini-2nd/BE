@@ -28,24 +28,20 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # 6. 배포 스크립트 파일 생성 (수정된 부분)
+      # 6. 배포 스크립트 파일 생성 (최종 수정 버전)
       - name: Create Deploy Script
         run: |
           JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" ! -name "*-plain.jar"))
           
-          # 스크립트 시작 부분에 source ~/.bash_profile 라인을 추가합니다.
           cat > ./deploy.sh << EOF
           #!/bin/bash
-          
-          # Java 환경 변수를 로드하기 위해 .bash_profile을 실행합니다.
-          source ~/.bash_profile
           
           # 기존 프로세스 종료
           echo "Stopping existing application..."
           pkill -f '$JAR_FILE_NAME' || true
           sleep 5
           
-          # 환경 변수 설정 (이 부분은 이제 Oracle 환경변수 로딩으로 필요 없을 수 있지만, 명시적으로 유지)
+          # 환경 변수 설정
           export DB_URL='${{ secrets.DB_URL }}'
           export DB_USERNAME='${{ secrets.DB_USERNAME }}'
           export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
@@ -56,9 +52,9 @@ jobs:
           export NAVER_SECRET='${{ secrets.NAVER_SECRET }}'
           export OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
           
-          # 새 애플리케이션 시작
+          # 새 애플리케이션 시작 (java를 절대 경로로 지정)
           echo "Starting new application..."
-          nohup java -jar ~/$JAR_FILE_NAME > ~/app.log 2>&1 &
+          nohup /opt/oracle/product/21c/dbhomeXE/jdk/bin/java -jar ~/$JAR_FILE_NAME > ~/app.log 2>&1 &
           
           # 프로세스 시작 확인
           sleep 5
