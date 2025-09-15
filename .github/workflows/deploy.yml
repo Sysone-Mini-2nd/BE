@@ -43,61 +43,109 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # 6.5. SSH 키가 VM에 전파될 때까지 10초간 대기
-      - name: Wait for SSH key propagation
-        run: sleep 20
+      # 6. gcloud CLI 설정
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-      # 6. 빌드된 JAR 파일을 GCP VM으로 전송
-      # gcloud scp 명령어를 사용해 JAR 파일을 VM의 홈 디렉토리로 복사합니다.
-      - name: Transfer JAR to GCP VM
+      # 7. SSH 연결 테스트 및 인스턴스 상태 확인
+      - name: Check VM status and connectivity
         run: |
-          # build/libs/ 폴더에서 생성된 JAR 파일 이름을 자동으로 찾습니다.
-          JAR_FILE=$(find build/libs/ -name "*.jar" | head -n 1)
-          gcloud compute scp \
-            $JAR_FILE \
-            ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
+          echo "Checking VM instance status..."
+          gcloud compute instances describe ${{ secrets.GCP_INSTANCE_NAME }} \
             --project=${{ secrets.GCP_PROJECT_ID }} \
-            --zone=${{ secrets.GCP_ZONE }}
-
-      # 7. VM에 접속하여 애플리케이션 실행 (환경 변수 주입)
-      # gcloud ssh 명령어로 VM에 접속하여 기존 앱을 종료하고,
-      # GitHub Secrets의 값들을 환경 변수로 주입하여 새 앱을 실행합니다.
-      - name: Deploy to GCP VM
-        env:
-          # Spring Boot 애플리케이션에 필요한 모든 Secret들을 env 컨텍스트에 등록합니다.
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
-          GOOGLE_EMAIL_KEY: ${{ secrets.GOOGLE_EMAIL_KEY }}
-          NAVER_CLIENT: ${{ secrets.NAVER_CLIENT }}
-          NAVER_SECRET: ${{ secrets.NAVER_SECRET }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          # '-plain.jar'를 제외하고 실행 가능한 JAR 파일만 찾습니다.
-          JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" ! -name "*-plain.jar"))
+            --zone=${{ secrets.GCP_ZONE }} \
+            --format="value(status,networkInterfaces[0].accessConfigs[0].natIP)" || {
+              echo "Failed to describe instance. Please check instance name, project, and zone."
+              exit 1
+            }
           
-          # gcloud ssh 명령어로 VM에 접속하여 배포 스크립트를 실행합니다.
+          echo "Testing SSH connectivity..."
           gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --zone=${{ secrets.GCP_ZONE }} \
+            --command="echo 'SSH connection successful'" \
+            --ssh-flag="-o ConnectTimeout=10" || {
+              echo "SSH connection failed. Trying with troubleshoot..."
+              gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
+                --project=${{ secrets.GCP_PROJECT_ID }} \
+                --zone=${{ secrets.GCP_ZONE }} \
+                --troubleshoot
+              exit 1
+            }
+
+      # 8. 빌드된 JAR 파일을 GCP VM으로 전송
+      - name: Transfer JAR to GCP VM
+        run: |
+          # '-plain.jar'를 제외하고 실행 가능한 JAR 파일만 찾습니다.
+          JAR_FILE=$(find build/libs/ -name "*.jar" ! -name "*-plain.jar" | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "No executable JAR file found!"
+            exit 1
+          fi
+          
+          echo "Found JAR file: $JAR_FILE"
+          
+          # JAR 파일을 VM으로 전송
+          gcloud compute scp \
+            "$JAR_FILE" \
+            ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --zone=${{ secrets.GCP_ZONE }} \
+            --ssh-flag="-o ConnectTimeout=30"
+
+      # 9. VM에 접속하여 애플리케이션 실행 (환경 변수 주입)
+      - name: Deploy to GCP VM
+        run: |
+          # JAR 파일명 추출
+          JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" ! -name "*-plain.jar" | head -n 1))
+          
+          echo "Deploying JAR file: $JAR_FILE_NAME"
+          
+          # 환경 변수들을 파일로 작성하여 전송
+          cat > .env << EOF
+          DB_URL='${{ secrets.DB_URL }}'
+          DB_USERNAME='${{ secrets.DB_USERNAME }}'
+          DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+          JWT_SECRET='${{ secrets.JWT_SECRET }}'
+          GOOGLE_EMAIL='${{ secrets.GOOGLE_EMAIL }}'
+          GOOGLE_EMAIL_KEY='${{ secrets.GOOGLE_EMAIL_KEY }}'
+          NAVER_CLIENT='${{ secrets.NAVER_CLIENT }}'
+          NAVER_SECRET='${{ secrets.NAVER_SECRET }}'
+          OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
+          EOF
+          
+          # 환경 변수 파일을 VM으로 전송
+          gcloud compute scp \
+            .env \
+            ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --zone=${{ secrets.GCP_ZONE }}
+          
+          # 배포 스크립트 실행
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --zone=${{ secrets.GCP_ZONE }} \
+            --ssh-flag="-o ConnectTimeout=30" \
             --command="
-              # pkill로 기존 프로세스를 더 간단하게 종료 (프로세스가 없어도 오류 안 남)
+              # 기존 프로세스 종료
+              echo 'Stopping existing application...'
               pkill -f '$JAR_FILE_NAME' || true
               sleep 5
-
-              # 새 애플리케이션을 백그라운드에서 실행합니다.
-              echo 'Starting new application process...'
-              nohup env \
-                DB_URL='${DB_URL}' \
-                DB_USERNAME='${DB_USERNAME}' \
-                DB_PASSWORD='${DB_PASSWORD}' \
-                JWT_SECRET='${JWT_SECRET}' \
-                GOOGLE_EMAIL='${GOOGLE_EMAIL}' \
-                GOOGLE_EMAIL_KEY='${GOOGLE_EMAIL_KEY}' \
-                NAVER_CLIENT='${NAVER_CLIENT}' \
-                NAVER_SECRET='${NAVER_SECRET}' \
-                OPENAI_API_KEY='${OPENAI_API_KEY}' \
-                java -jar ~/$JAR_FILE_NAME > ~/app.log 2>&1 &
+              
+              # 환경 변수 로드 및 새 애플리케이션 시작
+              echo 'Starting new application...'
+              source ~/.env
+              nohup java -jar ~/$JAR_FILE_NAME > ~/app.log 2>&1 &
+              
+              # 프로세스 시작 확인
+              sleep 3
+              if pgrep -f '$JAR_FILE_NAME' > /dev/null; then
+                echo 'Application started successfully'
+                echo 'Process ID:' \$(pgrep -f '$JAR_FILE_NAME')
+              else
+                echo 'Failed to start application'
+                echo 'Last 20 lines of log:'
+                tail -20 ~/app.log || echo 'No log file found'
+                exit 1
+              fi
             "
