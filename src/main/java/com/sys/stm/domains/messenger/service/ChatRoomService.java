@@ -137,4 +137,8 @@ public class ChatRoomService {
     public String getRecentMessageById(long chatRoomId){
         return chatRoomRepository.getRecentMessageById(chatRoomId);
     }
+
+    public long getUnreadCount(Long participantId, Long chatRoomId) {
+        return chatRoomRepository.getUnreadCount(participantId, chatRoomId);
+    }
 }
