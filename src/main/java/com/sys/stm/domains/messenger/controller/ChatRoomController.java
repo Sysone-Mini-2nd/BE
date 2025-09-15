@@ -68,6 +68,13 @@ public class ChatRoomController {
             ,@AuthenticationPrincipal CustomUserDetails userDetails) {
         long memberId = userDetails.getId();
 
+        System.out.println("--- Debugging Backend Chat Room Creation ---");
+        System.out.println("Received DTO name: " + chatRoomCreateRequestDto.getName());
+        System.out.println("Received DTO memberIdList: " + chatRoomCreateRequestDto.getMemberIdList());
+        System.out.println("Received DTO type: " + chatRoomCreateRequestDto.getType());
+        System.out.println("Authenticated User ID (creator): " + userDetails.getId());
+        System.out.println("------------------------------------------");
+
         // 채팅방 검증(1. 1:1 메시지인데 채팅방 참여 인원이 여러 명인지, 2. 채팅방 참여 인원 id 리스트가 실제로 존재하는 사람인지)
         chatRoomService.validateChatRoomData(chatRoomCreateRequestDto);
 
