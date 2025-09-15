@@ -38,35 +38,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .headers(headers -> headers
-                .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            .authorizeHttpRequests(authz -> authz
-                // 인증이 필요 없는 경로
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/members").permitAll() // 회원가입
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers("/favicon.ico").permitAll()
+                .authorizeHttpRequests(authz -> authz
+                        // 인증이 필요 없는 경로
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/members").permitAll() // 회원가입
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
 
-                // ADMIN 권한이 필요한 경로
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // ADMIN 권한이 필요한 경로
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // 나머지는 인증 필요
-                .anyRequest().authenticated()
-            )
+                        // 나머지는 인증 필요
+                        .anyRequest().authenticated()
+                )
 
-            .authenticationProvider(daoAuthenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(daoAuthenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-            .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(authenticationEntryPoint())
-                .accessDeniedHandler(accessDeniedHandler())
-            );
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
+                );
 
         return http.build();
     }

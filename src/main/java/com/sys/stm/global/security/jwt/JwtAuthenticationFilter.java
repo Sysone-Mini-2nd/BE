@@ -1,5 +1,6 @@
 package com.sys.stm.global.security.jwt;
 
+import com.sys.stm.global.security.userdetails.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -22,31 +22,37 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
+    private final JwtTokenProvider tokenProvider;
+    private final CustomUserDetailsService userDetailsService;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+        // WebSocket 경로에 대한 요청은 이 필터를 건너뜁니다.
+        if (request.getRequestURI().startsWith("/ws")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        String token = getTokenFromRequest(request);
+        try {
+            String token = getTokenFromRequest(request);
+            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+                // 1. 토큰에서 accountId(사용자 계정) 추출
+                String accountId = tokenProvider.getAccountIdFromToken(token);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token) && jwtTokenProvider.isAccessToken(token)) {
-            try {
-                String accountId = jwtTokenProvider.getAccountIdFromToken(token);
+                // 2. accountId를 사용하여 UserDetails 객체 로드
                 UserDetails userDetails = userDetailsService.loadUserByUsername(accountId);
 
-                UsernamePasswordAuthenticationToken authentication =
+                // 3. UserDetails를 기반으로 Authentication 객체 생성
+                UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
+                // 4. SecurityContext에 인증 정보 저장
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                log.debug("User '{}' authenticated successfully", accountId);
-            } catch (Exception e) {
-                log.error("Cannot set user authentication: {}", e.getMessage());
-                SecurityContextHolder.clearContext();
+                log.debug("Authenticated user: {}, authorities: {}", userDetails.getUsername(), userDetails.getAuthorities());
             }
+        } catch (Exception e) {
+            log.error("Could not set user authentication in security context", e);
         }
 
         filterChain.doFilter(request, response);

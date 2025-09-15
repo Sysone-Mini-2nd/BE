@@ -34,6 +34,8 @@ public class ChatMessageController {
         // 메시지를 DB에 저장
         ChatMessageResponseDto chatMessageResponseDto = chatMessageServiceImpl.createMessage(message);
 
+        System.out.println("===========================" + chatMessageResponseDto);
+
         // 메시지를 구독자들(채팅방 참여자)에게 전송
         messagingTemplate.convertAndSend("/topic/chatroom/" + message.getChatRoomId(), chatMessageResponseDto);
 

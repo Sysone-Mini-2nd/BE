@@ -2,6 +2,7 @@ package com.sys.stm.domains.messenger.service;
 
 import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
 import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
+import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
 import com.sys.stm.domains.messenger.dao.MessageStatusRepository;
 import com.sys.stm.domains.messenger.domain.Message;
 import com.sys.stm.domains.messenger.domain.MessageStatus;
@@ -23,7 +24,7 @@ public class MessageStatusService {
     private final ChatMessageRepository chatMessageRepository;
     private final SqlSessionFactory sqlSessionFactory;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
-
+    private final ChatRoomRepository chatRoomRepository;
 
     // 채팅방의 모든 메시지를 읽음으로 표시 (HTTP 진입 시)
     public int markAllMessagesInChatRoomAsRead(long chatRoomId, long readerId, long lastReadMessageId) {
@@ -101,6 +102,8 @@ public class MessageStatusService {
                 .type("SYSTEM")
                 .content(content)
                 .build();
+
+        chatRoomRepository.updateRecentMessage(chatRoomId, message.getContent());
 
         return chatMessageRepository.createMessage(message);
     }

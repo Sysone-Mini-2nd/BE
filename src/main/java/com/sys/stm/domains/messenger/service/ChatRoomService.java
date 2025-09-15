@@ -1,6 +1,7 @@
 package com.sys.stm.domains.messenger.service;
 
 import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
+import com.sys.stm.domains.messenger.dao.MemberProfileRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 @RequiredArgsConstructor
 @Transactional
 @Service
@@ -27,6 +30,8 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomParticipantService chatRoomParticipantService;
     private final MessageStatusService messageStatusService;
+    private final MemberProfileRepository memberProfileRepository;
+    private final SimpMessagingTemplate messagingTemplate; // SimpMessagingTemplate 주입
 
     public List<ChatRoomDataResponseDto> findAllChatRoomsDataById(long id) {
         // 사용자가 속한 채팅방의 기본 정보와 안 읽은 메시지 수를 가져온다.
@@ -123,5 +128,9 @@ public class ChatRoomService {
         return roomInfos.stream()
                 .mapToLong(ChatRoomInfoResponseDto::getUnreadMessageCount)
                 .sum();
+    }
+
+    public int updateRecentMessage(long chatRoomId, String message){
+        return chatRoomRepository.updateRecentMessage(chatRoomId, message);
     }
 }

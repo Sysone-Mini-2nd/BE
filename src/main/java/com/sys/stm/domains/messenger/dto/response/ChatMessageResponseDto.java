@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class ChatMessageResponseDto {
     private long id;
     private long chatRoomId;
+    private String senderName; // 보낸 사람 이름 추가
     private String type;
     private String content;
     private String fileUrl;
