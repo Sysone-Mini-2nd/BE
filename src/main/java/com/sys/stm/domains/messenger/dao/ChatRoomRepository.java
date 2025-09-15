@@ -20,5 +20,7 @@ public interface ChatRoomRepository {
     int updateRecentMessage (@Param("chatRoomId") long chatRoomId, @Param("msg") String message);
 
     String getRecentMessageById(@Param("chatRoomId") long chatRoomId);
+
+    long getUnreadCount(@Param("memberId") Long participantId, @Param("chatRoomId") Long chatRoomId);
 }
 
