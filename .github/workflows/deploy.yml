@@ -43,6 +43,10 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
+      # 6.5. SSH 키가 VM에 전파될 때까지 10초간 대기
+      - name: Wait for SSH key propagation
+        run: sleep 20
+
       # 6. 빌드된 JAR 파일을 GCP VM으로 전송
       # gcloud scp 명령어를 사용해 JAR 파일을 VM의 홈 디렉토리로 복사합니다.
       - name: Transfer JAR to GCP VM
