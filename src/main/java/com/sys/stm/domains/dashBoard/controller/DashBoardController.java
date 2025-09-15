@@ -26,8 +26,9 @@ public class DashBoardController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getId();
+        String memberRole = userDetails.getRole();
 
-        DashBoardProjectListResponseDTO response = dashBoardService.getProjectsByMemberId(memberId);
+        DashBoardProjectListResponseDTO response = dashBoardService.getProjectsByMemberId(memberId, memberRole);
 
         return ApiResponse.ok(200, response, "프로젝트 리스트 호출 성공");
     }
@@ -39,6 +40,7 @@ public class DashBoardController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
         Long memberId = userDetails.getId();
+        String loginMemberRole = userDetails.getRole();
 
         DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId);
 
