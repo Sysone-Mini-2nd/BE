@@ -77,10 +77,10 @@ public enum ExceptionMessage {
 
 
     // 이메일 관련
-    EMAIL_BAD_REQUEST("잘못된 이메일 요청입니다.")
+    EMAIL_BAD_REQUEST("잘못된 이메일 요청입니다."),
 
-
-
+    // 작업 로그 관련
+    ISSUE_LOG_NOT_FOUND("작업 로그 데이터를 찾을 수 없습니다.")
     ;
 
 

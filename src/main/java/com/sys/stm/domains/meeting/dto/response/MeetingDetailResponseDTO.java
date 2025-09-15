@@ -19,6 +19,7 @@ public class MeetingDetailResponseDTO {
     private String place;
     private String content;
     private String type;
+    private MeetingAnalysisResponseDTO aiSummary;
 }
 
 

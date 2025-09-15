@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sys.stm.domains.issueLog.dao.IssueLogRepository">
+    <insert id="createIssueLog" parameterType="com.sys.stm.domains.issueLog.domain.IssueLog">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_ISSUE_LOG.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO "issue_log" (
+        "issue_id",
+        "status",
+        "start_date",
+        "end_date"
+        ) VALUES (
+        #{issueLog.issueId},
+        #{issueLog.issueStatus},
+        #{issueLog.startDate},
+        #{issueLog.endDate}
+        )
+    </insert>
+
+
+
+    <select id="findByIssueId" parameterType="long">
+        SELECT *
+        FROM "issue_log"
+        WHERE "issue_id" = #{issueId} AND "status" = 'DONE'
+    </select>
+
+
+</mapper>

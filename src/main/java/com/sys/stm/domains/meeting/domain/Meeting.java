@@ -1,6 +1,8 @@
 package com.sys.stm.domains.meeting.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sys.stm.domains.meeting.dto.request.MeetingCreateRequestDTO;
+import com.sys.stm.domains.meeting.dto.request.MeetingUpdateRequestDTO;
 import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.*;
 
@@ -36,5 +38,14 @@ public class Meeting extends BaseEntity {
         this.type = request.getType().toString();
         this.progressDate = request.getProgressDate();
         this.place = request.getPlace();
+    }
+
+    public Meeting update(MeetingUpdateRequestDTO dto){
+        if(dto.getTitle() != null)this.title = dto.getTitle();
+        if(dto.getContent() != null)this.content = dto.getContent();
+        if(dto.getType() != null)this.type = dto.getType().toString();
+        if(dto.getPlace() != null)this.place = dto.getPlace();
+
+        return this;
     }
 }

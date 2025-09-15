@@ -25,5 +25,6 @@ public interface MeetingParticipantRepository {
     // 회의 ID 목록으로 참석자 배치 조회
     List<MeetingParticipant> findByMeetingIds(List<Long> meetingIds);
 
+    //
     void deleteMeetingParticipant(MeetingParticipant participant);
 }

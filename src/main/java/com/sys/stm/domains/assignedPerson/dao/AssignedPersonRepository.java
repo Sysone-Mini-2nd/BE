@@ -1,6 +1,7 @@
 package com.sys.stm.domains.assignedPerson.dao;
 
 import com.sys.stm.domains.assignedPerson.domain.AssignedPerson;
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDashBoardResponseDTO;
 import com.sys.stm.domains.assignedPerson.dto.response.PmInfoResponseDTO;
 import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO;
 import java.util.List;
@@ -15,4 +16,8 @@ public interface AssignedPersonRepository {
     List<AssignedPersonDetailResponseDTO> findMembersByProjectId(Long projectId);
     List<Long> findMemberIdsByProjectId(Long projectId);
     List<PmInfoResponseDTO> findPmsByProjectIds(List<Long> projectIds);
+    List<AssignedPersonDashBoardResponseDTO> findMembersNameByProjectId(Long projectId);
+    String findRoleByProjectIdAndMemberId(Long projectId, Long memberId);
+//    List<Member> findAllMemberByProjectId(Long projectId);
+//    Member findPmByProjectId;
 }
