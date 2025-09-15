@@ -21,5 +21,7 @@ public class ChatMessageResponseDto {
     private boolean isMine;
     // 메시지를 안 읽은 사람 수 (readCount)
     private long readCount;
+    @JsonProperty("senderId")  // JSON 필드명을 명시
+    private long senderId;
 }
 

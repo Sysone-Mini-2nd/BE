@@ -51,6 +51,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .createdAt(messageQueryResultDto.getCreatedAt())
                 .isMine(chatMessageRequestDto.getSenderId() == messageQueryResultDto.getSenderId())
                 .readCount(messageQueryResultDto.getReadCount() - 1)
+                .senderId(chatMessageRequestDto.getSenderId())
                 .build();
 
     }
@@ -77,6 +78,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                     .createdAt(messageQueryResultDto.getCreatedAt())
                     .isMine(memberId == messageQueryResultDto.getSenderId()) // isMine 필드 할당
                     .readCount(messageQueryResultDto.getReadCount() - 1)
+                    .senderId(messageQueryResultDto.getSenderId())
                     .build();
         }).toList();
     }
