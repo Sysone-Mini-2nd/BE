@@ -25,4 +25,5 @@ public class ProjectSummaryResponseDTO {
     private Timestamp startDate;
     private Timestamp endDate;
     private String pmName;
+    private Long pmId;
 }

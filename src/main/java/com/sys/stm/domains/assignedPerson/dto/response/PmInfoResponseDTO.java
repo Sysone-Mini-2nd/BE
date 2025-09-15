@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PmInfoResponseDTO {
     private Long projectId;
+    private Long pmId;
     private String pmName;
 }

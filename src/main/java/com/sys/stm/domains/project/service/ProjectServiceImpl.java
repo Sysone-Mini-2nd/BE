@@ -98,8 +98,8 @@ public class ProjectServiceImpl implements ProjectService{
                 .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
 
         List<PmInfoResponseDTO> pmInfoList = assignedPersonRepository.findPmsByProjectIds(projectIds);
-        Map<Long, String> pmMap = pmInfoList.stream()
-                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, PmInfoResponseDTO::getPmName));
+        Map<Long, PmInfoResponseDTO> pmInfoMap = pmInfoList.stream()
+                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, pmInfo -> pmInfo));
 
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
@@ -113,7 +113,10 @@ public class ProjectServiceImpl implements ProjectService{
 
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
-            String pmName = pmMap.getOrDefault(p.getId(), "");
+            PmInfoResponseDTO pmInfo = pmInfoMap.get(p.getId());
+
+            Long pmId = (pmInfo != null) ? pmInfo.getPmId() : null;
+            String pmName = (pmInfo != null) ? pmInfo.getPmName() : "";
 
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
 
@@ -134,6 +137,7 @@ public class ProjectServiceImpl implements ProjectService{
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
                     .pmName(pmName)
+                    .pmId(pmId)
                     .build();
 
             dtoList.add(dto);
