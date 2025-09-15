@@ -50,4 +50,10 @@
         WHERE "id" = #{chatRoomId}
     </update>
 
+    <select id="getRecentMessageById">
+        SELECT "recent_message"
+        FROM "chat_room"
+        WHERE "id" = #{chatRoomId}
+    </select>
+
 </mapper>
