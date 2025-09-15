@@ -108,6 +108,24 @@ public class MessageStatusService {
         return chatMessageRepository.createMessage(message);
     }
 
+
+    public Message createInitialInvitationMessageforWebsocket(List<String> nameList, long chatRoomId, long memberId) {
+
+        String content = makeInitialInvitationMessage(nameList);
+        // 메세지 만들기
+        Message message = Message.builder()
+                .senderId(memberId)
+                .chatRoomId(chatRoomId)
+                .type("SYSTEM")
+                .content(content)
+                .build();
+
+        chatRoomRepository.updateRecentMessage(chatRoomId, message.getContent());
+
+        chatMessageRepository.createMessage(message);
+        return message;
+    }
+
     private String makeInitialInvitationMessage(List<String> nameList) {
         String message = nameList.stream()
                 .map(name -> name + "님")
