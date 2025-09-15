@@ -133,4 +133,8 @@ public class ChatRoomService {
     public int updateRecentMessage(long chatRoomId, String message){
         return chatRoomRepository.updateRecentMessage(chatRoomId, message);
     }
+
+    public String getRecentMessageById(long chatRoomId){
+        return chatRoomRepository.getRecentMessageById(chatRoomId);
+    }
 }
