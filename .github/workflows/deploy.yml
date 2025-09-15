@@ -1,0 +1,103 @@
+name: BE CI/CD
+
+# 이 워크플로우가 언제 실행될지 정의합니다.
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 코드가 푸시(push)될 때 실행됩니다.
+
+# 실행될 작업(job)들을 정의합니다.
+jobs:
+  build-and-deploy:
+    # 작업이 실행될 가상 환경을 지정합니다. (Ubuntu 최신 버전)
+    runs-on: ubuntu-latest
+
+    # 작업의 단계(step)들을 정의합니다.
+    steps:
+      # 1. 소스 코드 체크아웃
+      # GitHub 저장소의 코드를 가상 환경으로 가져옵니다.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. JDK 17 설치
+      # 빌드에 필요한 Java 환경을 설정합니다.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 3. Gradle 실행 권한 부여
+      # gradlew 스크립트에 실행 권한을 줍니다.
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 4. Gradle로 빌드
+      # 코드를 컴파일하고 테스트를 실행한 뒤, 실행 가능한 JAR 파일을 생성합니다.
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      # 5. GCP 인증
+      # GitHub Secrets에 저장된 서비스 계정 키를 사용하여 GCP에 인증합니다.
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      # 6. 빌드된 JAR 파일을 GCP VM으로 전송
+      # gcloud scp 명령어를 사용해 JAR 파일을 VM의 홈 디렉토리로 복사합니다.
+      - name: Transfer JAR to GCP VM
+        run: |
+          # build/libs/ 폴더에서 생성된 JAR 파일 이름을 자동으로 찾습니다.
+          JAR_FILE=$(find build/libs/ -name "*.jar" | head -n 1)
+          gcloud compute scp \
+            $JAR_FILE \
+            ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --zone=${{ secrets.GCP_ZONE }}
+
+      # 7. VM에 접속하여 애플리케이션 실행 (환경 변수 주입)
+      # gcloud ssh 명령어로 VM에 접속하여 기존 앱을 종료하고,
+      # GitHub Secrets의 값들을 환경 변수로 주입하여 새 앱을 실행합니다.
+      - name: Deploy to GCP VM
+        env:
+          # Spring Boot 애플리케이션에 필요한 모든 Secret들을 env 컨텍스트에 등록합니다.
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }} # JWT Secret 추가
+          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+          GOOGLE_EMAIL_KEY: ${{ secrets.GOOGLE_EMAIL_KEY }}
+          NAVER_CLIENT: ${{ secrets.NAVER_CLIENT }}
+          NAVER_SECRET: ${{ secrets.NAVER_SECRET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # build/libs/ 폴더에서 생성된 JAR 파일의 순수 이름만 추출합니다.
+          JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" | head -n 1))
+          
+          # gcloud ssh 명령어로 VM에 접속하여 배포 스크립트를 실행합니다.
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --zone=${{ secrets.GCP_ZONE }} \
+            --command="
+              # 기존에 실행 중인 동일한 이름의 Java 프로세스를 찾아 종료합니다.
+              PID=\$(pgrep -f '$JAR_FILE_NAME')
+              if [ -n \"\$PID\" ]; then
+                echo 'Stopping existing process with PID: \$PID'
+                kill -9 \$PID
+                sleep 5
+              fi
+
+              # env 컨텍스트에 등록된 변수들을 nohup 명령어 앞에 붙여서 실행합니다.
+              echo 'Starting new application process...'
+              nohup env \
+                DB_URL='${DB_URL}' \
+                DB_USERNAME='${DB_USERNAME}' \
+                DB_PASSWORD='${DB_PASSWORD}' \
+                JWT_SECRET='${JWT_SECRET}' \
+                GOOGLE_EMAIL='${GOOGLE_EMAIL}' \
+                GOOGLE_EMAIL_KEY='${GOOGLE_EMAIL_KEY}' \
+                NAVER_CLIENT='${NAVER_CLIENT}' \
+                NAVER_SECRET='${NAVER_SECRET}' \
+                OPENAI_API_KEY='${OPENAI_API_KEY}' \
+                java -jar ~/$JAR_FILE_NAME > ~/app.log 2>&1 &
+            "
