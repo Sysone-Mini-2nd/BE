@@ -11,48 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 소스 코드 체크아웃
+      # ... (1~5단계는 동일)
       - name: Checkout
         uses: actions/checkout@v4
-
-      # 2. JDK 17 설치
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      # 3. Gradle 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      # 4. Gradle로 빌드
       - name: Build with Gradle
         run: ./gradlew build
-
-      # 5. GCP 인증
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # 6. 배포 스크립트 파일 생성
-      # VM에서 실행할 명령어들을 deploy.sh 파일로 만듭니다.
+      # 6. 배포 스크립트 파일 생성 (수정된 부분)
       - name: Create Deploy Script
         run: |
-          # build/libs/ 에서 실행 가능한 JAR 파일 이름을 찾습니다.
           JAR_FILE_NAME=$(basename $(find build/libs/ -name "*.jar" ! -name "*-plain.jar"))
           
-          # 환경 변수들을 export 하는 셸 스크립트를 생성합니다.
+          # 스크립트 시작 부분에 source ~/.bash_profile 라인을 추가합니다.
           cat > ./deploy.sh << EOF
           #!/bin/bash
+          
+          # Java 환경 변수를 로드하기 위해 .bash_profile을 실행합니다.
+          source ~/.bash_profile
           
           # 기존 프로세스 종료
           echo "Stopping existing application..."
           pkill -f '$JAR_FILE_NAME' || true
           sleep 5
           
-          # 환경 변수 설정
+          # 환경 변수 설정 (이 부분은 이제 Oracle 환경변수 로딩으로 필요 없을 수 있지만, 명시적으로 유지)
           export DB_URL='${{ secrets.DB_URL }}'
           export DB_USERNAME='${{ secrets.DB_USERNAME }}'
           export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
@@ -81,7 +74,6 @@ jobs:
           EOF
 
       # 7. JAR 파일 및 배포 스크립트 전송
-      # gcloud scp로 두 개의 파일을 VM으로 복사합니다.
       - name: Transfer Files to GCP VM
         run: |
           JAR_FILE=$(find build/libs/ -name "*.jar" ! -name "*-plain.jar")
@@ -93,7 +85,6 @@ jobs:
             --zone=${{ secrets.GCP_ZONE }}
 
       # 8. VM에서 배포 스크립트 실행
-      # VM에 접속해서 deploy.sh에 실행 권한을 주고 실행합니다.
       - name: Execute Deploy Script on VM
         run: |
           gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
