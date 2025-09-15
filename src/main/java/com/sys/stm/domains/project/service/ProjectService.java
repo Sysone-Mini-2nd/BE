@@ -10,7 +10,10 @@ public interface ProjectService {
     ProjectDetailResponseDTO getProject(Long projectId);
     ProjectListResponseDTO getProjectsByMemberId(Long memberId, ProjectListRequestDTO projectListRequestDTO);
     ProjectListResponseDTO getProjectsByMemberId(Long memberId);
+    ProjectListResponseDTO getAllProject();
     ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO);
     ProjectDetailResponseDTO updateProject(Long projectId, ProjectUpdateRequestDTO projectUpdateRequestDTO);
     void deleteProject(Long projectId);
+    ProjectDetailResponseDTO addProjectMember(Long projectId, Long memberId);
+    void deleteProjectMember(Long projectId, Long memberId);
 }

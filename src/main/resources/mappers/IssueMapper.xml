@@ -193,9 +193,9 @@
     <update id="updateIssue" parameterType="com.sys.stm.domains.issue.domain.Issue">
         UPDATE "issue"
         SET
-            "member_id" = #{memberId},
+            "member_id" = #{memberId, jdbcType=NUMERIC},
             "title" = #{title},
-            "desc" = #{desc},
+            "desc" = #{desc, jdbcType=VARCHAR},
             "status" = #{status},
             "priority" = #{priority},
             "start_date" = #{startDate},

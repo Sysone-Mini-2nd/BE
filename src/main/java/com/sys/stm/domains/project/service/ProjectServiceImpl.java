@@ -98,8 +98,8 @@ public class ProjectServiceImpl implements ProjectService{
                 .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
 
         List<PmInfoResponseDTO> pmInfoList = assignedPersonRepository.findPmsByProjectIds(projectIds);
-        Map<Long, String> pmMap = pmInfoList.stream()
-                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, PmInfoResponseDTO::getPmName));
+        Map<Long, PmInfoResponseDTO> pmInfoMap = pmInfoList.stream()
+                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, pmInfo -> pmInfo));
 
         List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
         Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
@@ -113,7 +113,11 @@ public class ProjectServiceImpl implements ProjectService{
 
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
-            String pmName = pmMap.getOrDefault(p.getId(), "");
+            PmInfoResponseDTO pmInfo = pmInfoMap.get(p.getId());
+            List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(p.getId());
+
+            Long pmId = (pmInfo != null) ? pmInfo.getPmId() : null;
+            String pmName = (pmInfo != null) ? pmInfo.getPmName() : "";
 
             statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
 
@@ -134,6 +138,8 @@ public class ProjectServiceImpl implements ProjectService{
                     .startDate(p.getStartDate())
                     .endDate(p.getEndDate())
                     .pmName(pmName)
+                    .pmId(pmId)
+                    .members(members)
                     .build();
 
             dtoList.add(dto);
@@ -201,6 +207,78 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
+    public ProjectListResponseDTO getAllProject() {
+        List<Project> responseProjects = projectRepository.findAllProject();
+
+        if (responseProjects == null || responseProjects.isEmpty()) {
+            return ProjectListResponseDTO.builder().build();
+        }
+
+        List<Long> projectIds = responseProjects.stream()
+                .map(Project::getId)
+                .toList();
+
+        List<ProjectStatsResponseDTO> statsList = projectRepository.findProjectStatsByIds(projectIds);
+        Map<Long, ProjectStatsResponseDTO> statsMap = statsList.stream()
+                .collect(Collectors.toMap(ProjectStatsResponseDTO::getId, stats -> stats));
+
+        List<PmInfoResponseDTO> pmInfoList = assignedPersonRepository.findPmsByProjectIds(projectIds);
+        Map<Long, PmInfoResponseDTO> pmInfoMap = pmInfoList.stream()
+                .collect(Collectors.toMap(PmInfoResponseDTO::getProjectId, pmInfo -> pmInfo));
+
+        List<ProjectSummaryResponseDTO> dtoList = new ArrayList<>();
+        Map<ProjectStatus, Integer> statusCountMap = new HashMap<>();
+        statusCountMap.put(ProjectStatus.TODO, 0);
+        statusCountMap.put(ProjectStatus.IN_PROGRESS, 0);
+        statusCountMap.put(ProjectStatus.PAUSED, 0);
+        statusCountMap.put(ProjectStatus.DONE, 0);
+
+        int delayedCount = 0;
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        for (Project p : responseProjects) {
+            ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
+            PmInfoResponseDTO pmInfo = pmInfoMap.get(p.getId());
+            List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(p.getId());
+
+            Long pmId = (pmInfo != null) ? pmInfo.getPmId() : null;
+            String pmName = (pmInfo != null) ? pmInfo.getPmName() : "";
+
+            statusCountMap.put(p.getStatus(), statusCountMap.getOrDefault(p.getStatus(), 0) + 1);
+
+            if (p.getEndDate() != null && p.getStatus() != ProjectStatus.DONE && p.getEndDate().before(now)) {
+                delayedCount++;
+            }
+
+            ProjectSummaryResponseDTO dto = ProjectSummaryResponseDTO.builder()
+                    .id(p.getId())
+                    .name(p.getName())
+                    .desc(p.getDesc())
+                    .status(p.getStatus())
+                    .priority(p.getPriority())
+                    .progressRate(stats.getProgressRate())
+                    .completedTasks(stats.getCompletedTasks())
+                    .totalTasks(stats.getTotalTasks())
+                    .totalMemberCount(stats.getTotalMemberCount())
+                    .startDate(p.getStartDate())
+                    .endDate(p.getEndDate())
+                    .pmName(pmName)
+                    .pmId(pmId)
+                    .members(members)
+                    .build();
+
+            dtoList.add(dto);
+        }
+
+        return ProjectListResponseDTO.builder()
+                .projects(dtoList)
+                .total(dtoList.size())
+                .statusCounts(statusCountMap)
+                .delayed(delayedCount)
+                .build();
+    }
+
+    @Override
     @Transactional
     public ProjectDetailResponseDTO createProject(ProjectCreateRequestDTO projectCreateRequestDTO) {
         Project requestProject = Project.builder()
@@ -224,16 +302,18 @@ public class ProjectServiceImpl implements ProjectService{
 
         LocalDateTime endDate = now.plusDays(1);
 
-        for(IssueCreateRequestDTO dto : dtoList){
-            issueRepository.createIssue(Issue.builder()
-                            .projectId(requestProject.getId())
-                            .title(dto.getTitle())
-                            .desc(dto.getDesc())
-                            .status(IssueStatus.TODO)
-                            .priority(IssuePriority.NORMAL)
-                            .startDate(Timestamp.valueOf(now))
-                            .endDate(Timestamp.valueOf(endDate))
-                    .build());
+        if(dtoList != null){
+            for(IssueCreateRequestDTO dto : dtoList){
+                issueRepository.createIssue(Issue.builder()
+                        .projectId(requestProject.getId())
+                        .title(dto.getTitle())
+                        .desc(dto.getDesc())
+                        .status(IssueStatus.TODO)
+                        .priority(IssuePriority.NORMAL)
+                        .startDate(Timestamp.valueOf(now))
+                        .endDate(Timestamp.valueOf(endDate))
+                        .build());
+            }
         }
 
         return getProject(requestProject.getId());
@@ -340,6 +420,21 @@ public class ProjectServiceImpl implements ProjectService{
         if(!issueIds.isEmpty()){
             issueRepository.deleteIssuesByIds(issueIds);
         }
+    }
+
+    @Override
+    public ProjectDetailResponseDTO addProjectMember(Long projectId, Long memberId) {
+        assignedPersonRepository.createAssignedPerson(AssignedPerson.builder()
+                .projectId(projectId)
+                .memberId(memberId)
+                .role(AssignedPersonRole.USER)
+                .build());
+        return getProject(projectId);
+    }
+
+    @Override
+    public void deleteProjectMember(Long projectId, Long memberId) {
+        assignedPersonRepository.deleteByProjectIdAndMemberIds(projectId, List.of(memberId));
     }
 
     private void createAssignedPersons(List<Long> memberIds, Long pmId, Long projectId) {

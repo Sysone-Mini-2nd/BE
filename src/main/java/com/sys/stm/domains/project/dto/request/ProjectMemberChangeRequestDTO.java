@@ -1,4 +1,4 @@
-package com.sys.stm.domains.assignedPerson.dto.response;
+package com.sys.stm.domains.project.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PmInfoResponseDTO {
-    private Long projectId;
-    private Long pmId;
-    private String pmName;
+public class ProjectMemberChangeRequestDTO {
+    Long memberId;
 }

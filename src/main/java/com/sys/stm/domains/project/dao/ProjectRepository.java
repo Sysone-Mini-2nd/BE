@@ -21,4 +21,5 @@ public interface ProjectRepository {
     int updateProject(Project project);
     void deleteById(Long projectId);
     List<ProjectStatsResponseDTO> findProjectStatsByIds(@Param("projectIds") List<Long> projectIds);
+    List<Project> findAllProject();
 }
