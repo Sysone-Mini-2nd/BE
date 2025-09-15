@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -14,7 +15,6 @@ public class DashBoardIssueErrorResponseDTO {                // 우선순위 작
     private long id;
     private String title;
     private String writerName;
-
-
-
+    private long memberId;
+    private Timestamp endDate;
 }
