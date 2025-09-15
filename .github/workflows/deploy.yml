@@ -91,7 +91,7 @@ jobs:
             ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --zone=${{ secrets.GCP_ZONE }} \
-            --ssh-flag="-o ConnectTimeout=30"
+            --scp-flag="-o ConnectTimeout=30"
 
       # 9. VM에 접속하여 애플리케이션 실행 (환경 변수 주입)
       - name: Deploy to GCP VM
@@ -103,15 +103,15 @@ jobs:
           
           # 환경 변수들을 파일로 작성하여 전송
           cat > .env << EOF
-          DB_URL='${{ secrets.DB_URL }}'
-          DB_USERNAME='${{ secrets.DB_USERNAME }}'
-          DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-          JWT_SECRET='${{ secrets.JWT_SECRET }}'
-          GOOGLE_EMAIL='${{ secrets.GOOGLE_EMAIL }}'
-          GOOGLE_EMAIL_KEY='${{ secrets.GOOGLE_EMAIL_KEY }}'
-          NAVER_CLIENT='${{ secrets.NAVER_CLIENT }}'
-          NAVER_SECRET='${{ secrets.NAVER_SECRET }}'
-          OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
+          export DB_URL='${{ secrets.DB_URL }}'
+          export DB_USERNAME='${{ secrets.DB_USERNAME }}'
+          export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+          export JWT_SECRET='${{ secrets.JWT_SECRET }}'
+          export GOOGLE_EMAIL='${{ secrets.GOOGLE_EMAIL }}'
+          export GOOGLE_EMAIL_KEY='${{ secrets.GOOGLE_EMAIL_KEY }}'
+          export NAVER_CLIENT='${{ secrets.NAVER_CLIENT }}'
+          export NAVER_SECRET='${{ secrets.NAVER_SECRET }}'
+          export OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
           EOF
           
           # 환경 변수 파일을 VM으로 전송
@@ -119,7 +119,8 @@ jobs:
             .env \
             ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
             --project=${{ secrets.GCP_PROJECT_ID }} \
-            --zone=${{ secrets.GCP_ZONE }}
+            --zone=${{ secrets.GCP_ZONE }} \
+            --scp-flag="-o ConnectTimeout=30"
           
           # 배포 스크립트 실행
           gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} \
