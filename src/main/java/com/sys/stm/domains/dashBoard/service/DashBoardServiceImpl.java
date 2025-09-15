@@ -80,6 +80,7 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
             return DashBoardResponseDTO.builder()
+                    .role(memberRole)
                     .projectGraph(projectDto)
                     .issuesGraph(issueTrackingDto)
                     .weekendIssues(weekendIssues)
@@ -112,11 +113,14 @@ public class DashBoardServiceImpl implements DashBoardService {
                             .id(issue.getId())
                             .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
                             .title(issue.getTitle())
+                            .memberId(issue.getMemberId())
+                            .endDate(issue.getEndDate())
                             .build())
                     .toList();
 
 
             return DashBoardResponseDTO.builder()
+                    .role(memberRole)
                     .projectGraph(projectDto)
                     .issuesGraph(issueTrackingDto)
                     .weekendIssues(weekendIssues)

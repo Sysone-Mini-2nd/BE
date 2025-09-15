@@ -9,6 +9,7 @@ import java.util.List;
 @Builder
 @Data
 public class DashBoardResponseDTO {                     // 대시보드 반환 값
+    private String role;
     private DashBoardProjectResponseDTO  projectGraph;
     @Builder.Default
     private List<DashBoardUserIssueTrackingResponseDTO> issuesGraph = new ArrayList<>();
