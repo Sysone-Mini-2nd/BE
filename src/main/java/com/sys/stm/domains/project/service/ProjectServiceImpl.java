@@ -114,6 +114,7 @@ public class ProjectServiceImpl implements ProjectService{
         for (Project p : responseProjects) {
             ProjectStatsResponseDTO stats = statsMap.getOrDefault(p.getId(), new ProjectStatsResponseDTO());
             PmInfoResponseDTO pmInfo = pmInfoMap.get(p.getId());
+            List<AssignedPersonDetailResponseDTO> members = assignedPersonRepository.findMembersByProjectId(p.getId());
 
             Long pmId = (pmInfo != null) ? pmInfo.getPmId() : null;
             String pmName = (pmInfo != null) ? pmInfo.getPmName() : "";
@@ -138,6 +139,7 @@ public class ProjectServiceImpl implements ProjectService{
                     .endDate(p.getEndDate())
                     .pmName(pmName)
                     .pmId(pmId)
+                    .members(members)
                     .build();
 
             dtoList.add(dto);

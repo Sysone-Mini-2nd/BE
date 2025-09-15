@@ -1,8 +1,11 @@
 package com.sys.stm.domains.project.dto.response;
 
+import com.sys.stm.domains.assignedPerson.dto.response.AssignedPersonDetailResponseDTO;
 import com.sys.stm.domains.project.domain.ProjectPriority;
 import com.sys.stm.domains.project.domain.ProjectStatus;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,4 +29,6 @@ public class ProjectSummaryResponseDTO {
     private Timestamp endDate;
     private String pmName;
     private Long pmId;
+    @Builder.Default
+    List<AssignedPersonDetailResponseDTO> members = new ArrayList<>();
 }
