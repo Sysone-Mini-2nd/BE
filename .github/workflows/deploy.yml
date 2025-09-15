@@ -58,7 +58,7 @@ jobs:
       # 7. VM에 접속하여 애플리케이션 실행 (환경 변수 주입)
       # gcloud ssh 명령어로 VM에 접속하여 기존 앱을 종료하고,
       # GitHub Secrets의 값들을 환경 변수로 주입하여 새 앱을 실행합니다.
- - name: Deploy to GCP VM
+      - name: Deploy to GCP VM
         env:
           # Spring Boot 애플리케이션에 필요한 모든 Secret들을 env 컨텍스트에 등록합니다.
           DB_URL: ${{ secrets.DB_URL }}
