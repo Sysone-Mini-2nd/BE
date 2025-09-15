@@ -3,8 +3,11 @@ package com.sys.stm.domains.messenger.service;
 import com.sys.stm.domains.member.dao.MemberRepository;
 import com.sys.stm.domains.member.dto.response.MemberResponseDTO;
 import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
+import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
+import com.sys.stm.domains.messenger.dao.MessageStatusRepository;
 import com.sys.stm.domains.messenger.domain.Message;
+import com.sys.stm.domains.messenger.domain.MessageStatus;
 import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto;
@@ -14,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +32,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final MessageStatusRepository messageStatusRepository;
+    private final ChatRoomParticipantRepository chatRoomParticipantRepository;
 
     // DB에 메시지 저장
     @Override
@@ -35,7 +42,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         Message message = chatMessageRequestDto.toMessage();
         chatMessageRepository.createMessage(message);
         chatRoomRepository.updateRecentMessage(chatMessageRequestDto.getChatRoomId(), message.getContent());
+        chatRoomParticipantRepository.updateLastReadAt(chatMessageRequestDto.getChatRoomId(),chatMessageRequestDto.getSenderId()
+        , Timestamp.valueOf(LocalDateTime.now()));
+        messageStatusRepository.createMessageStatus(MessageStatus.builder()
+                        .readerId(chatMessageRequestDto.getSenderId())
+                        .readAt(LocalDateTime.now())
+                        .messageId(message.getId())
 
+                .build());
         MessageQueryResultDto messageQueryResultDto = chatMessageRepository.findMessageById(message.getId());
         Optional<MemberResponseDTO> temp = memberRepository.findMemberById(messageQueryResultDto.getSenderId());
         String senderName = "";
