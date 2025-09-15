@@ -88,7 +88,7 @@ jobs:
             ${{ secrets.GCP_INSTANCE_NAME }}:~/ \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --zone=${{ secrets.GCP_ZONE }}
-
+            
       # 8. VM에서 배포 스크립트 실행
       - name: Execute Deploy Script on VM
         run: |

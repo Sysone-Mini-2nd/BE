@@ -3,6 +3,7 @@ package com.sys.stm.domains.messenger.controller;
 import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.request.MessageReadRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
+import com.sys.stm.domains.messenger.dto.response.ChatRoomListUpdateResponseDto;
 import com.sys.stm.domains.messenger.dto.response.MessageReadResponseDto;
 import com.sys.stm.domains.messenger.dto.response.TotalUnreadCountResponseDto;
 import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
@@ -37,22 +38,32 @@ public class ChatMessageController {
         // 메시지를 구독자들(채팅방 참여자)에게 전송
         messagingTemplate.convertAndSend("/topic/chatroom/" + message.getChatRoomId(), chatMessageResponseDto);
 
-        // 3. 채팅방 참여자들에게 최신 전체 안읽음 카운트 전송
+        // 채팅방 참여자들에게 최신 전체 안읽음 카운트 전송
         List<Long> participantIds =
                 chatRoomParticipantService.findParticipantIdsByRoomId(message.getChatRoomId());
+
+        // 채팅방의 최신 메시지 조회
+        String recentMessage = chatRoomService.getRecentMessageById(message.getChatRoomId());
 
         for (Long participantId : participantIds) {
             if (participantId.equals(message.getSenderId())) {
                 continue; // 메시지 보낸 사람은 제외
             }
 
-            // 4. 해당 참여자의 전체 안 읽은 메시지 개수를 다시 계산
+            // 채팅방 목록 구독자들에게 최신 정보 전송
+            long totalUnreadCountForRoom = chatRoomService.getUnreadCount(participantId, message.getChatRoomId());
+            messagingTemplate.convertAndSend(
+                    "/topic/chatroom-list",
+                    new ChatRoomListUpdateResponseDto(message.getChatRoomId(), totalUnreadCountForRoom, recentMessage,participantId)
+            );
+
+            // 해당 참여자의 전체 안 읽은 메시지 개수를 다시 계산
             long totalUnreadCount = chatRoomService.getTotalUnreadCount(participantId);
 
-            // 5. 개인 큐로 최신 총합 전송
+            // 개인 큐로 최신 총합 전송
             messagingTemplate.convertAndSend(
-                    "/queue/total-unread/" + participantId.toString()
-                    , new TotalUnreadCountResponseDto(totalUnreadCount)
+                    "/topic/update",
+                    new TotalUnreadCountResponseDto(totalUnreadCount, recentMessage, participantId, message.getChatRoomId())
             );
         }
 
