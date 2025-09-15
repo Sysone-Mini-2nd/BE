@@ -117,9 +117,9 @@ public class DashBoardServiceImpl implements DashBoardService {
                 .sorted(Comparator.comparing(Issue::getEndDate))  // endDate 기준 오름차순 정렬
                 .map(issue -> DashBoardIssueErrorResponseDTO.builder()
                         .id(issue.getId())
-                        .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                        .writerName(issue.getMemberId() == null ? "" : memberService.findMemberProfileById(issue.getMemberId()).getName())
                         .title(issue.getTitle())
-                        .memberId(issue.getMemberId())
+                        .memberId(issue.getMemberId() == null ? 0L : issue.getMemberId())
                         .endDate(issue.getEndDate())
                         .build())
                 .toList();
@@ -325,32 +325,34 @@ public class DashBoardServiceImpl implements DashBoardService {
         // TODO member 연결되면 writerName 변경
 
         for(Issue issue : issues) {
+            String writerName = issue.getMemberId() == null ? "" : memberService.findMemberProfileById(issue.getMemberId()).getName();
+
             if(issue.getPriority().equals(IssuePriority.LOW)) {
                     lowPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .writerName(writerName)
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.NORMAL)){
                     normalPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .writerName(writerName)
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.HIGH)){
                     highPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .writerName(writerName)
                             .build());
 
             }else if(issue.getPriority().equals(IssuePriority.WARNING)){
                     warningPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
                             .id(issue.getId())
                             .title(issue.getTitle())
-                            .writerName(memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .writerName(writerName)
                             .build());
 
             }
