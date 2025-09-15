@@ -145,7 +145,7 @@ public class ChatRoomController {
         long memberId = userDetails.getId();
 
         long totalCount = chatRoomService.getTotalUnreadCount(memberId);
-        return ApiResponse.ok(new TotalUnreadCountResponseDto(totalCount));
+        return ApiResponse.ok(new TotalUnreadCountResponseDto(totalCount, null, -1, -1));
 
     }
 

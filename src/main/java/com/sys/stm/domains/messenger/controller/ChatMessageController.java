@@ -41,6 +41,9 @@ public class ChatMessageController {
         List<Long> participantIds =
                 chatRoomParticipantService.findParticipantIdsByRoomId(message.getChatRoomId());
 
+        // 채팅방의 최신 메시지 조회.
+        String recentMessage = chatRoomService.getRecentMessageById(message.getChatRoomId());
+
         for (Long participantId : participantIds) {
             if (participantId.equals(message.getSenderId())) {
                 continue; // 메시지 보낸 사람은 제외
@@ -51,8 +54,8 @@ public class ChatMessageController {
 
             // 5. 개인 큐로 최신 총합 전송
             messagingTemplate.convertAndSend(
-                    "/queue/total-unread/" + participantId.toString()
-                    , new TotalUnreadCountResponseDto(totalUnreadCount)
+                    "/topic/update"
+                    , new TotalUnreadCountResponseDto(totalUnreadCount, recentMessage, participantId, message.getChatRoomId())
             );
         }
 
