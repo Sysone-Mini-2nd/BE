@@ -56,4 +56,16 @@
         WHERE "id" = #{chatRoomId}
     </select>
 
+    <select id="getUnreadCount">
+        SELECT
+        (SELECT COUNT(*)
+        FROM "message" m
+        WHERE m."chat_room_id" = crp."chat_room_id" AND m."created_at" > crp."last_read_at") AS unreadMessageCount
+        FROM
+        "chat_room_participants" crp
+        JOIN
+        "chat_room" cr ON crp."chat_room_id" = cr."id"
+        WHERE
+        crp."member_id" = #{memberId} AND cr."id" = #{chatRoomId}
+    </select>
 </mapper>
