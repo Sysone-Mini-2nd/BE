@@ -1,6 +1,12 @@
 package com.sys.stm.domains.messenger.controller;
 
+import com.sys.stm.domains.member.dao.MemberRepository;
+import com.sys.stm.domains.member.dto.response.MemberResponseDTO;
+import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
+import com.sys.stm.domains.messenger.domain.Message;
 import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
+import com.sys.stm.domains.messenger.dto.request.ChatRoomInvitationRequestDto;
+import com.sys.stm.domains.messenger.dto.request.ChatRoomInvitationWebSocketRequestDto;
 import com.sys.stm.domains.messenger.dto.request.MessageReadRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomListUpdateResponseDto;
@@ -15,7 +21,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import lombok.RequiredArgsConstructor;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Controller
@@ -26,7 +35,7 @@ public class ChatMessageController {
     private final MessageStatusService messageStatusService;
     private final ChatRoomParticipantService chatRoomParticipantService;
     private final ChatRoomService chatRoomService;
-
+    private final MemberRepository memberRepository;
 
     // 메시지 수신
     @MessageMapping("/send")
@@ -49,13 +58,6 @@ public class ChatMessageController {
             if (participantId.equals(message.getSenderId())) {
                 continue; // 메시지 보낸 사람은 제외
             }
-
-            // 채팅방 목록 구독자들에게 최신 정보 전송
-            long totalUnreadCountForRoom = chatRoomService.getUnreadCount(participantId, message.getChatRoomId());
-            messagingTemplate.convertAndSend(
-                    "/topic/chatroom-list",
-                    new ChatRoomListUpdateResponseDto(message.getChatRoomId(), totalUnreadCountForRoom, recentMessage,participantId)
-            );
 
             // 해당 참여자의 전체 안 읽은 메시지 개수를 다시 계산
             long totalUnreadCount = chatRoomService.getTotalUnreadCount(participantId);
@@ -88,5 +90,49 @@ public class ChatMessageController {
                         .memberId(messageReadRequestDto.getMemberId())
                         .build()
         );
+    }
+
+    @MessageMapping("/invite")
+    public void inviteMembersToChatRoom(ChatRoomInvitationWebSocketRequestDto request) {
+        // Extract data from the request
+        Long chatRoomId = request.getChatRoomId();
+        Long memberId = request.getMemberId();
+        List<Long> memberIdList = request.getMemberIdList();
+
+        // Log the incoming request
+        System.out.println("--- Invite Members to Chat Room ---");
+        System.out.println("Chat Room ID: " + chatRoomId);
+        System.out.println("Inviter Member ID: " + memberId);
+        System.out.println("Invited Member IDs: " + memberIdList);
+        System.out.println("------------------------------------");
+
+        // Add members to the chat room
+        LocalDateTime currentTime = LocalDateTime.now();
+        List<ChatRoomParticipant> chatRoomParticipants = memberIdList.stream()
+                .map(id -> ChatRoomParticipant.builder()
+                        .memberId(id)
+                        .chatRoomId(chatRoomId)
+                        .lastReadAt(Timestamp.valueOf(currentTime))
+                        .build())
+                .toList();
+        chatRoomParticipantService.createChatRoomParticipants(chatRoomParticipants);
+
+        // Fetch names of invited members
+        List<String> nameList = memberIdList.stream()
+                .map(id -> memberRepository.findMemberById(id).map(MemberResponseDTO::getName).orElse("Unknown"))
+                .toList();
+
+        // Create and send a system message
+        Message message = messageStatusService.createInitialInvitationMessageforWebsocket(nameList, chatRoomId, memberId);
+        messagingTemplate.convertAndSend("/topic/chatroom/" + chatRoomId, ChatMessageResponseDto.builder()
+                .chatRoomId(chatRoomId)
+                .id(message.getId())
+                .senderId(memberId)
+                .senderName(memberRepository.findMemberById(memberId).map(MemberResponseDTO::getName).orElse("System"))
+                .type(message.getType())
+                .content(message.getContent())
+                .createdAt(message.getCreatedAt().toLocalDateTime())
+                .readCount(0)
+                .build());
     }
 }
