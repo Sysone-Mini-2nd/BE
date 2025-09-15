@@ -172,4 +172,17 @@
     </select>
 
 
+    <select id="findAllProject" resultMap="projectResultMap">
+    SELECT DISTINCT
+    p."id",
+    p."name",
+    p."desc",
+    p."status",
+    p."priority",
+    p."start_date",
+    p."end_date"
+    FROM "project" p
+    WHERE "is_deleted" = 0
+    </select>
+
 </mapper>

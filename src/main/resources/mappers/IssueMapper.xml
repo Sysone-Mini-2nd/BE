@@ -116,7 +116,7 @@
             "start_date", "end_date", "status", "priority",
             "created_at", "updated_at"
         FROM "issue"
-        WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0
+        WHERE "project_id" = #{projectId} AND "member_id" = #{memberId} AND "is_deleted" = 0 AND "status" != 'TODO'
         ORDER BY "end_date" ASC
     </select>
 
@@ -138,7 +138,7 @@
             "start_date", "end_date", "status", "priority",
             "created_at", "updated_at"
         FROM "issue"
-        WHERE "project_id" = #{projectId} AND "is_deleted" = 0
+        WHERE "project_id" = #{projectId} AND "is_deleted" = 0 AND "status" != 'TODO'
         ORDER BY "id"
     </select>
 
