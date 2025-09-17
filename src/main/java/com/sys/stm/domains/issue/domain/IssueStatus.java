@@ -2,7 +2,7 @@ package com.sys.stm.domains.issue.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
+/** 작성자: 백승준 */
 @Getter
 @RequiredArgsConstructor
 public enum IssueStatus {

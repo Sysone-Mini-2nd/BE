@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Service
 @RequiredArgsConstructor
 @Slf4j

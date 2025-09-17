@@ -3,7 +3,7 @@ package com.sys.stm.domains.tag.dao;
 import com.sys.stm.domains.tag.domain.Tag;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
-
+/** 작성자: 백승준 */
 @Mapper
 public interface TagRepository {
     List<Tag> findTags();

@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Param;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
-
+/** 작성자: 김대호 */
 @Mapper
 public interface MemberRepository {
 

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-
+/** 작성자: 김대호 */
 @Slf4j
 @Service
 @RequiredArgsConstructor

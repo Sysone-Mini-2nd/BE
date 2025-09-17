@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-
+/** 작성자: 조윤상 */
 @Getter
 @Setter
 public class ChatRoomInvitationWebSocketRequestDto {

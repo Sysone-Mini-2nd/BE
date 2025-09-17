@@ -6,7 +6,7 @@ import lombok.Data;
 
 import java.sql.Timestamp;
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Data
 public class MeetingCreateRequestDTO {
     private String title;           // 회의록 제목

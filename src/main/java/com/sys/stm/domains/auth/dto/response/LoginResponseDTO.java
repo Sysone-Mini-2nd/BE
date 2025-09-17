@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+/** 작성자: 김대호 */
 @Data
 @Builder
 @NoArgsConstructor

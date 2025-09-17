@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.sql.Timestamp;
 import java.util.List;
-
+/** 작성자: 조윤상 */
 @Mapper
 public interface ChatMessageRepository {
     List<MessageQueryResultDto> findMessagesByChatRoomId(@Param("chatRoomId") long id, @Param("page") int page, @Param("size") int size);

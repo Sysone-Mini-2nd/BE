@@ -4,7 +4,7 @@ import com.sys.stm.domains.comment.domain.Comment;
 import com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
-
+/** 작성자: 백승준 */
 @Mapper
 public interface CommentRepository {
     // 댓글 단건 조회

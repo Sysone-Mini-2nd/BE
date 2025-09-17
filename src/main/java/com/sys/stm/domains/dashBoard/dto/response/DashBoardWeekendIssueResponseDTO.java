@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
-
+/** 작성자: 배지원 */
 @Builder
 @Data
 public class DashBoardWeekendIssueResponseDTO {

@@ -2,7 +2,7 @@ package com.sys.stm.domains.meeting.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
+/** 작성자: 배지원 */
 @Getter
 @RequiredArgsConstructor
 public enum MeetingType {

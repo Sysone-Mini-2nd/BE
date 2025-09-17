@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+/** 작성자: 백승준 */
 @Slf4j
 @RestController
 @RequestMapping("api")

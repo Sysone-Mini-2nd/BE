@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Optional;
-
+/** 작성자: 배지원 */
 @Mapper
 public interface IssueLogRepository {
 

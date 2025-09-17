@@ -10,7 +10,7 @@ import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 import com.sys.stm.domains.issueLog.domain.IssueLog;
 
 import java.util.List;
-
+/** 작성자: 배지원 */
 public interface IssueLogService {
     void createIssueLog(IssueLog issueLog);
 

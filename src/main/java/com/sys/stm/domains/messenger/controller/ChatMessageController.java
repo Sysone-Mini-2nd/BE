@@ -25,7 +25,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Controller
 public class ChatMessageController {

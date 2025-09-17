@@ -2,7 +2,7 @@ package com.sys.stm.domains.messenger.dto.request;
 
 import com.sys.stm.domains.messenger.domain.Message;
 import lombok.*;
-
+/** 작성자: 조윤상 */
 @ToString
 @Getter
 @Builder

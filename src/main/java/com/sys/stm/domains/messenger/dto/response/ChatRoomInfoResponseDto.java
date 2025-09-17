@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-
+/** 작성자: 조윤상 */
 @ToString
 @Getter
 @NoArgsConstructor

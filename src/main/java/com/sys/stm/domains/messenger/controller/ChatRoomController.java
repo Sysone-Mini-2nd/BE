@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/chat-room")

@@ -3,7 +3,7 @@ package com.sys.stm.domains.member.dto.response;
 import lombok.Data;
 
 import java.sql.Timestamp;
-
+/** 작성자: 김대호 */
 @Data
 public class MemberResponseDTO {
     private Long id;

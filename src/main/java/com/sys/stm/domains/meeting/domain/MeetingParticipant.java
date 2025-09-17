@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 @AllArgsConstructor

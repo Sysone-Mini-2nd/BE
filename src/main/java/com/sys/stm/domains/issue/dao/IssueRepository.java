@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
+/** 작성자: 백승준 */
 @Mapper
 public interface IssueRepository {
     Optional<IssueDetailResponseDTO> findById(Long id);

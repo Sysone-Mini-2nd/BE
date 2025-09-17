@@ -6,7 +6,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 public class DashBoardProjectListResponseDTO {              // 프로젝트 리스트

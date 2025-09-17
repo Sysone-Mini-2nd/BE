@@ -5,7 +5,7 @@ import com.sys.stm.domains.project.dto.request.ProjectListRequestDTO;
 import com.sys.stm.domains.project.dto.request.ProjectUpdateRequestDTO;
 import com.sys.stm.domains.project.dto.response.ProjectDetailResponseDTO;
 import com.sys.stm.domains.project.dto.response.ProjectListResponseDTO;
-
+/** 작성자: 백승준 */
 public interface ProjectService {
     ProjectDetailResponseDTO getProject(Long projectId);
     ProjectListResponseDTO getProjectsByMemberId(Long memberId, ProjectListRequestDTO projectListRequestDTO);

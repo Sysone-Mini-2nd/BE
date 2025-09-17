@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 public class DashBoardIssuePriorityResponseDTO {                // 우선순위 작업

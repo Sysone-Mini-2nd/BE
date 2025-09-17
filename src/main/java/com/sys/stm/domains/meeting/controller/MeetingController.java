@@ -27,7 +27,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 
-
+/** 작성자: 배지원 */
 @RestController
 @RequestMapping("/api/meeting")
 @RequiredArgsConstructor
