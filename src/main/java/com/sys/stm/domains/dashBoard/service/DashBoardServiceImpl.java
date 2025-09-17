@@ -62,11 +62,11 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
     @Override
-    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId) {
+    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String loginRole) {
 
     String  memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
 
-    if(memberRole != null && memberRole.equals("USER")) {
+    if(loginRole.equals("USER") && memberRole != null && memberRole.equals("USER")) {
         // 현재 유저에 할당된 이슈 데이터 가져옴
         List<Issue> issues = issueService.findByProjectIdAndMemberId(projectId,memberId);
 
@@ -126,7 +126,7 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
         return DashBoardResponseDTO.builder()
-                .role(memberRole)
+                .role(loginRole.equals("MASTER") ? "MASTER" : memberRole)
                 .projectGraph(projectDto)
                 .issuesGraph(issueTrackingDto)
                 .weekendIssues(weekendIssues)
