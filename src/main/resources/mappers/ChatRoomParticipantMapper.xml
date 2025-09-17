@@ -52,5 +52,19 @@
     <select id="findParticipantIdsByRoomId" resultType="long">
         SELECT "member_id" FROM "chat_room_participants" WHERE "chat_room_id" = #{chatRoomId}
     </select>
+
+    <select id="existChatRoom" resultType="java.lang.Long">
+        SELECT "chat_room_id"
+        FROM "chat_room_participants"
+        WHERE "member_id" IN (#{senderId}, #{readerId})
+        GROUP BY "chat_room_id"
+        HAVING COUNT(DISTINCT "member_id") = 2
+        AND "chat_room_id" IN (
+        SELECT "chat_room_id"
+        FROM "chat_room_participants"
+        GROUP BY "chat_room_id"
+        HAVING COUNT(*) = 2
+        )
+    </select>
 </mapper>
 

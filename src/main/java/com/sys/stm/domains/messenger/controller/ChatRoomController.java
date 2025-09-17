@@ -2,9 +2,7 @@ package com.sys.stm.domains.messenger.controller;
 
 
 import com.sys.stm.domains.messenger.domain.ChatRoom;
-import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
-import com.sys.stm.domains.messenger.dto.request.ChatRoomInvitationRequestDto;
-import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
+import com.sys.stm.domains.messenger.dto.request.*;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 import com.sys.stm.domains.messenger.dto.response.TotalUnreadCountResponseDto;
@@ -65,7 +63,7 @@ public class ChatRoomController {
     // 채팅방 생성
     @PostMapping("/create")
     public ApiResponse<String> createChatRoom(@RequestBody ChatRoomCreateRequestDto chatRoomCreateRequestDto
-            ,@AuthenticationPrincipal CustomUserDetails userDetails) {
+            , @AuthenticationPrincipal CustomUserDetails userDetails) {
         long memberId = userDetails.getId();
 
         System.out.println("--- Debugging Backend Chat Room Creation ---");
@@ -117,7 +115,7 @@ public class ChatRoomController {
     }
 
     @DeleteMapping("/delete/{chatRoomId}")
-    public ApiResponse<?> deleteFromChatRoom(@PathVariable long chatRoomId,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse<?> deleteFromChatRoom(@PathVariable long chatRoomId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         long memberId = userDetails.getId();
         int deleteCount = chatRoomParticipantService.deleteFromChatRoom(chatRoomId, memberId);
 
@@ -149,4 +147,41 @@ public class ChatRoomController {
 
     }
 
+    @PostMapping("/oneMessage")
+    public ApiResponse<?> createOneMessage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOneMessageDto dto) {
+        long memberId = userDetails.getId();
+
+        // 두 명의 1대1 채팅방이 있는지 확인
+        Long chatRoomId = chatRoomParticipantService.existChatRoom(dto);
+
+
+        if (chatRoomId == 1L) {
+            // 두 명의 1대1 채팅방이 있으면 해당 채팅방에 메시지 추가
+            chatMessageService.createMessage(ChatMessageRequestDto.builder()
+                    .chatRoomId(chatRoomId)
+                    .content(dto.getContent())
+                    .senderId(memberId)
+                    .type("TEXT")
+                    .build());
+        } else {
+            // 두 명의 1대1 채팅방이 없으면 새로 생성
+            ChatRoomCreateRequestDto chatRoomCreateRequestDto = new ChatRoomCreateRequestDto(memberId + "", "One_On_One", List.of(dto.getSenderId(), dto.getReaderId()));
+            // 채팅방 생성
+            ChatRoom chatRoom = chatRoomCreateRequestDto.toChatRoom();
+            chatRoomService.createChatRoom(chatRoom);
+
+            // 채팅방에 참여자 추가
+            chatRoomService.inviteMembers(chatRoomCreateRequestDto.getMemberIdList(), chatRoom.getId(), memberId);
+
+            // 새로 생성된 채팅방에 메시지 추가
+            chatMessageService.createMessage(ChatMessageRequestDto.builder()
+                    .chatRoomId(chatRoom.getId())
+                    .content(dto.getContent())
+                    .senderId(memberId)
+                    .type("TEXT")
+                    .build());
+        }
+
+        return ApiResponse.ok();
+    }
 }

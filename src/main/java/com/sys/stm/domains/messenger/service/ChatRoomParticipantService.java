@@ -3,6 +3,7 @@ package com.sys.stm.domains.messenger.service;
 import com.sys.stm.domains.messenger.dao.ChatMessageRepository;
 import com.sys.stm.domains.messenger.dao.ChatRoomParticipantRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
+import com.sys.stm.domains.messenger.dto.request.CreateOneMessageDto;
 import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,20 @@ public class ChatRoomParticipantService {
 
     public List<Long> findParticipantIdsByRoomId(long chatRoomId) {
         return chatRoomParticipantRepository.findParticipantIdsByRoomId(chatRoomId);
+    }
+
+    public Long existChatRoom(CreateOneMessageDto dto) {
+        Long isExisted = chatRoomParticipantRepository.existChatRoom(dto.getSenderId(), dto.getReaderId());
+
+        if(isExisted == null){
+            return 0L;
+        }
+
+        if(isExisted == 0){
+            return 0L;
+        }
+        return isExisted;
+
     }
 }
 

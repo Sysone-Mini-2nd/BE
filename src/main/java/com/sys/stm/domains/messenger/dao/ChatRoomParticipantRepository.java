@@ -4,6 +4,7 @@ import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.response.ParticipantInfoResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.List;
 import java.sql.Timestamp;
@@ -27,4 +28,5 @@ public interface ChatRoomParticipantRepository {
 
     List<Long> findParticipantIdsByRoomId(long chatRoomId);
 
+    Long existChatRoom(@Param("senderId") long senderId,@Param("readerId") long readerId);
 }
