@@ -4,7 +4,7 @@ import lombok.Data;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-
+/** 작성자: 김대호 */
 @Data
 public class MemberUpdateRequestDTO {
     @Size(max = 255, message = "이메일은 255자 이하여야 합니다")

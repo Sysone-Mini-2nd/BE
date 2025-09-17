@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.sql.Timestamp;
-
+/** 작성자: 조윤상 */
 @Mapper
 public interface ChatRoomParticipantRepository {
 

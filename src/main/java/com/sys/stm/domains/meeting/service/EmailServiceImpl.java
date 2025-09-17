@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
+/** 작성자: 배지원 */
 // EmailServiceImpl.java
 @Service
 @RequiredArgsConstructor

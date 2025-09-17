@@ -8,7 +8,7 @@ import lombok.*;
 
 import java.sql.Timestamp;
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Builder
 @Data
 @AllArgsConstructor

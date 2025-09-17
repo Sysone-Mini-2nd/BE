@@ -4,7 +4,7 @@ import com.sys.stm.domains.messenger.dto.request.ChatMessageRequestDto;
 import com.sys.stm.domains.messenger.dto.response.ChatMessageResponseDto;
 
 import java.util.List;
-
+/** 작성자: 조윤상 */
 public interface ChatMessageService {
 
     // 한 채팅방의 모든 메시지(페이지네이션)

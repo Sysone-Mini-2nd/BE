@@ -4,7 +4,7 @@ import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
+/** 작성자: 조윤상 */
 @Getter @Setter
 @ToString
 @Builder

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-
+/** 작성자: 김대호 */
 @Slf4j
 @Component
 public class JwtTokenProvider {

@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+/** 작성자: 배지원 */
 @Mapper
 public interface MeetingRepository {
     // 회의록 Entity 조회

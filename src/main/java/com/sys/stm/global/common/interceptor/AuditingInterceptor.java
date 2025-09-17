@@ -9,7 +9,7 @@ import org.apache.ibatis.plugin.*;
 import org.springframework.stereotype.Component;
 import java.util.Properties;
 
-
+/** 작성자: 배지원 */
 @Slf4j
 @Component
 @Intercepts({

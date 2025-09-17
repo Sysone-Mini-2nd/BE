@@ -2,7 +2,7 @@ package com.sys.stm.global.common.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+/** 작성자: 배지원 */
 @NoArgsConstructor
 @Getter
 public class ApiResponse<T> {

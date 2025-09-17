@@ -9,7 +9,7 @@ import com.sys.stm.domains.issue.dto.response.IssueDetailResponseDTO;
 import com.sys.stm.domains.issue.dto.response.IssueListResponseDTO;
 
 import java.util.List;
-
+/** 작성자: 백승준 */
 public interface IssueService {
     IssueDetailResponseDTO getIssue(Long issueId);
 

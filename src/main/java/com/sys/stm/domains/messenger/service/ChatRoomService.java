@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Transactional
 @Service

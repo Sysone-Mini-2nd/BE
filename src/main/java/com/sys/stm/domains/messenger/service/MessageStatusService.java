@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Service
 public class MessageStatusService {

@@ -4,7 +4,7 @@ import com.sys.stm.domains.member.dto.request.MemberUpdateRequestDTO;
 import com.sys.stm.domains.member.dto.response.MemberResponseDTO;
 
 import java.util.List;
-
+/** 작성자: 김대호 */
 public interface MemberService {
 
     // 사용자 등록

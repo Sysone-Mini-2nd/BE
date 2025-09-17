@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-
+/** 작성자: 김대호 */
 @Getter
 public class CustomUserDetails implements UserDetails {
 

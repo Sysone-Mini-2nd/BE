@@ -4,7 +4,7 @@ import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
+/** 작성자: 백승준 */
 @EqualsAndHashCode(callSuper = true)
 @Builder
 @Data

@@ -5,7 +5,7 @@ import com.sys.stm.domains.meeting.domain.MeetingParticipant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+/** 작성자: 배지원 */
 public interface MeetingParticipantService {
 
     // 참석자 생성

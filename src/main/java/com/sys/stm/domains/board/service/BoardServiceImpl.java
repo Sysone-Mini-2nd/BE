@@ -5,7 +5,7 @@ import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+/** 작성자: 배지원 */
 @RequiredArgsConstructor
 @Service
 public class BoardServiceImpl implements BoardService {

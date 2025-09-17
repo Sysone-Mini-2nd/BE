@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Builder
 @Data
 public class DashBoardResponseDTO {                     // 대시보드 반환 값
