@@ -40,7 +40,6 @@ public class DashBoardServiceImpl implements DashBoardService {
             projectListResponse = projectService.getProjectsByMemberId(memberId);
         }
 
-
         List<DashBoardProjectDataResponseDTO> projects = findProjectData(projectListResponse);
 
         int projectCount = projects.size();
@@ -62,83 +61,107 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
     @Override
-    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String loginRole) {
+    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String userRole) {
+        String memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
 
-    String  memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
+        // 1. 역할별 이슈 데이터 조회 (유일한 차이점)
+        List<Issue> issues = getIssuesByRole(memberId, projectId, memberRole);
 
-    if(loginRole.equals("USER") && memberRole != null && memberRole.equals("USER")) {
-        // 현재 유저에 할당된 이슈 데이터 가져옴
-        List<Issue> issues = issueService.findByProjectIdAndMemberId(projectId,memberId);
+        // 2. 공통 대시보드 데이터 생성 (재사용)
+        DashBoardProjectResponseDTO projectGraph = createProjectGraph(projectId, issues);
+        DashBoardWeekendIssueResponseDTO weekendIssues = createWeekendIssues(issues);
+        DashBoardIssuePriorityResponseDTO priorities = createIssuePriorities(issues);
 
+        // 3. 역할별 차별화된 데이터 생성
+        List<DashBoardUserIssueTrackingResponseDTO> issueTracking = createIssueTracking(memberId, projectId, memberRole, issues);
+        List<DashBoardIssueErrorResponseDTO> errorPriorities = createErrorPriorities(memberRole, issues);
 
-        // 1. 특정 프로젝트 ID에 해당하는 이슈 내용 가져옴
-        DashBoardProjectResponseDTO projectDto = findDashBoardProjectGraph(projectId,issues);
-
-        // 2. 개발 속도 (이슈 체크)
-
-        List<DashBoardUserIssueTrackingResponseDTO> issueTrackingDto = findDashBoardUserIssueTracking(issues);
-
-        // 3. 앞으로 1주일 간 이슈리스트 출력
-        DashBoardWeekendIssueResponseDTO weekendIssues = findDashBoardWeekendIssues(issues);
-
-        // 4. 우선순위 작업
-        DashBoardIssuePriorityResponseDTO priorityResponseDTO = findDashBoardPriority(issues);
-
-
-        return DashBoardResponseDTO.builder()
-                .role(memberRole)
-                .projectGraph(projectDto)
-                .issuesGraph(issueTrackingDto)
-                .weekendIssues(weekendIssues)
-                .priorities(priorityResponseDTO)
-                .errorPriorities(null)
-                .build();
-    }else{
-        // 현재 프로젝트에 할당된 이슈 데이터 가져옴
-        List<Issue> issues = issueService.findByProjectId(projectId);
-
-
-        // 1. 특정 프로젝트 ID에 해당하는 이슈 내용 가져옴
-        DashBoardProjectResponseDTO projectDto = findDashBoardProjectGraph(projectId,issues);
-
-        // 2. 개발 속도 (이슈 체크)
-        List<DashBoardUserIssueTrackingResponseDTO> issueTrackingDto = findDashBoardIssueTrackingByMembers(projectId);
-
-
-        // 3. 앞으로 1주일 간 이슈리스트 출력
-        DashBoardWeekendIssueResponseDTO weekendIssues = findDashBoardWeekendIssues(issues);
-
-        // 4. 우선순위 작업
-        DashBoardIssuePriorityResponseDTO priorityResponseDTO = findDashBoardPriority(issues);
-
-        // 5. 에러발생 작업
-        List<DashBoardIssueErrorResponseDTO> errorResponseDTO = issues.stream()
-                .filter(issue -> issue.getPriority().equals(IssuePriority.WARNING))
-                .sorted(Comparator.comparing(Issue::getEndDate))  // endDate 기준 오름차순 정렬
-                .map(issue -> DashBoardIssueErrorResponseDTO.builder()
-                        .id(issue.getId())
-                        .writerName(issue.getMemberId() == null ? "" : memberService.findMemberProfileById(issue.getMemberId()).getName())
-                        .title(issue.getTitle())
-                        .memberId(issue.getMemberId() == null ? 0L : issue.getMemberId())
-                        .endDate(issue.getEndDate())
-                        .build())
-                .toList();
-
-
-        return DashBoardResponseDTO.builder()
-                .role(loginRole.equals("MASTER") ? "MASTER" : memberRole)
-                .projectGraph(projectDto)
-                .issuesGraph(issueTrackingDto)
-                .weekendIssues(weekendIssues)
-                .priorities(priorityResponseDTO)
-                .errorPriorities(errorResponseDTO)
-                .build();
-        }
-
+        // 4. 통합 응답 객체 생성
+        return buildDashBoardResponse(memberRole, projectGraph, issueTracking, weekendIssues, priorities, errorPriorities);
     }
 
-    public  List<DashBoardProjectDataResponseDTO> findProjectData(ProjectListResponseDTO projectListResponse){
+    // 역할별 이슈 데이터 조회
+    private List<Issue> getIssuesByRole(Long memberId, Long projectId, String memberRole) {
+        if (memberRole != null && memberRole.equals("USER")) {
+            // 일반 사용자: 자신에게 할당된 이슈만 조회
+            return issueService.findByProjectIdAndMemberId(projectId, memberId);
+        } else {
+            // PM/MASTER: 프로젝트 전체 이슈 조회
+            return issueService.findByProjectId(projectId);
+        }
+    }
 
+    // 프로젝트 그래프 데이터 생성 - 모든 역할에서 공통 사용
+    private DashBoardProjectResponseDTO createProjectGraph(Long projectId, List<Issue> issues) {
+        return findDashBoardProjectGraph(projectId, issues);
+    }
+
+    // 주간 이슈 데이터 생성 - 모든 역할에서 공통 사용
+    private DashBoardWeekendIssueResponseDTO createWeekendIssues(List<Issue> issues) {
+        return findDashBoardWeekendIssues(issues);
+    }
+
+    // 이슈 우선순위 데이터 생성 - 모든 역할에서 공통 사용
+    private DashBoardIssuePriorityResponseDTO createIssuePriorities(List<Issue> issues) {
+        return findDashBoardPriority(issues);
+    }
+
+    // 이슈 추적 데이터 생성 - 역할별 차별화
+    private List<DashBoardUserIssueTrackingResponseDTO> createIssueTracking(
+            Long memberId, Long projectId, String memberRole, List<Issue> issues) {
+
+        if (memberRole != null && memberRole.equals("USER")) {
+            // 일반 사용자: 개인 이슈 추적 데이터
+            return findDashBoardUserIssueTracking(issues);
+        } else {
+            // PM/MASTER: 팀 전체 이슈 추적 데이터
+            return findDashBoardIssueTrackingByMembers(projectId);
+        }
+    }
+
+    // 에러 우선순위 데이터 생성 - PM/MASTER만 제공
+    private List<DashBoardIssueErrorResponseDTO> createErrorPriorities(String memberRole, List<Issue> issues) {
+        if (memberRole != null && memberRole.equals("USER")) {
+            // 일반 사용자: 에러 우선순위 미제공
+            return null;
+        } else {
+            // PM/MASTER: WARNING 우선순위 이슈 제공
+            return issues.stream()
+                    .filter(issue -> issue.getPriority().equals(IssuePriority.WARNING))
+                    .sorted(Comparator.comparing(Issue::getEndDate))
+                    .map(issue -> DashBoardIssueErrorResponseDTO.builder()
+                            .id(issue.getId())
+                            .writerName(issue.getMemberId() == null ? "" :
+                                    memberService.findMemberProfileById(issue.getMemberId()).getName())
+                            .title(issue.getTitle())
+                            .memberId(issue.getMemberId() == null ? 0L : issue.getMemberId())
+                            .endDate(issue.getEndDate())
+                            .build())
+                    .toList();
+        }
+    }
+
+    // 대시보드 응답 객체 생성 - 공통 로직
+    private DashBoardResponseDTO buildDashBoardResponse(
+            String memberRole,
+            DashBoardProjectResponseDTO projectGraph,
+            List<DashBoardUserIssueTrackingResponseDTO> issueTracking,
+            DashBoardWeekendIssueResponseDTO weekendIssues,
+            DashBoardIssuePriorityResponseDTO priorities,
+            List<DashBoardIssueErrorResponseDTO> errorPriorities) {
+
+        return DashBoardResponseDTO.builder()
+                .role(memberRole == null ? "MASTER" : memberRole)
+                .projectGraph(projectGraph)
+                .issuesGraph(issueTracking)
+                .weekendIssues(weekendIssues)
+                .priorities(priorities)
+                .errorPriorities(errorPriorities)
+                .build();
+    }
+
+    // 프로젝트 데이터 변환 - 프로젝트 리스트 조회용
+    public List<DashBoardProjectDataResponseDTO> findProjectData(ProjectListResponseDTO projectListResponse) {
         return projectListResponse.getProjects().stream()
                 .map(project -> DashBoardProjectDataResponseDTO.builder()
                         .id(project.getId())
@@ -153,36 +176,30 @@ public class DashBoardServiceImpl implements DashBoardService {
                 .toList();
     }
 
-
-
-    public DashBoardProjectResponseDTO findDashBoardProjectGraph(Long projectId, List<Issue>  issues) {
+    // 프로젝트 그래프 데이터 생성 - 이슈 상태별 통계 계산
+    public DashBoardProjectResponseDTO findDashBoardProjectGraph(Long projectId, List<Issue> issues) {
         int todoCount = 0;           // 앞으로 할 일
         int progressCount = 0;      // 진행중
         int doneCount = 0;          // 완료
         int reviewCount = 0;        // 리뷰 중
         int totalCount = issues.size();
 
-        for(Issue issue : issues) {
-            if(issue.getStatus().equals(IssueStatus.DONE))
-                doneCount++;
-            if(issue.getStatus().equals(IssueStatus.IN_PROGRESS))
-                progressCount++;
-            if(issue.getStatus().equals(IssueStatus.REVIEW))
-                reviewCount++;
-            if(issue.getStatus().equals(IssueStatus.TODO))
-                todoCount++;
+        // 이슈 상태별 카운팅
+        for (Issue issue : issues) {
+            if (issue.getStatus().equals(IssueStatus.DONE)) doneCount++;
+            if (issue.getStatus().equals(IssueStatus.IN_PROGRESS)) progressCount++;
+            if (issue.getStatus().equals(IssueStatus.REVIEW)) reviewCount++;
+            if (issue.getStatus().equals(IssueStatus.TODO)) todoCount++;
         }
 
-        log.info("todoCount :  " + todoCount);
-        log.info("progressCOunt : " + progressCount);
-        log.info("doneCount : " + doneCount);
-        log.info("reviewCount : " + reviewCount);
-        log.info("totalCount : " + totalCount);
+        log.info("todoCount: {}, progressCount: {}, doneCount: {}, reviewCount: {}, totalCount: {}",
+                todoCount, progressCount, doneCount, reviewCount, totalCount);
 
-        int todoCountResult = (int)(((double)todoCount / totalCount) * 100);
-        int progressCountResult = (int)(((double)progressCount / totalCount) * 100);
-        int doneCountResult = (int)(((double)doneCount / totalCount) * 100);
-        int reviewCountResult = (int)(((double)reviewCount / totalCount) * 100);
+        // 백분율 계산 (소수점 반올림)
+        int todoCountResult = (int) (((double) todoCount / totalCount) * 100);
+        int progressCountResult = (int) (((double) progressCount / totalCount) * 100);
+        int doneCountResult = (int) (((double) doneCount / totalCount) * 100);
+        int reviewCountResult = (int) (((double) reviewCount / totalCount) * 100);
 
         return DashBoardProjectResponseDTO.builder()
                 .id(projectId)
@@ -194,8 +211,8 @@ public class DashBoardServiceImpl implements DashBoardService {
                 .build();
     }
 
-
-    public List<DashBoardUserIssueTrackingResponseDTO> findDashBoardUserIssueTracking(List<Issue>  issues) {
+    // 사용자별 이슈 추적 데이터 생성 - 개인 이슈 추적용
+    public List<DashBoardUserIssueTrackingResponseDTO> findDashBoardUserIssueTracking(List<Issue> issues) {
         return issues.stream()
                 .filter(issue -> issue.getStatus().equals(IssueStatus.DONE))            // 작업이 끝난 데이터만 가져옴
                 .map(issue ->
@@ -208,8 +225,7 @@ public class DashBoardServiceImpl implements DashBoardService {
                 .toList();
     }
 
-
-    // 프로젝트별 인원마다의 전체 이슈 기간 추출
+    // 프로젝트별 인원마다의 전체 이슈 기간 추출 - 팀 이슈 추적용
     public List<DashBoardUserIssueTrackingResponseDTO> findDashBoardIssueTrackingByMembers(Long projectId) {
         // 1. 프로젝트에 참여하는 모든 멤버 조회
         List<AssignedPersonDashBoardResponseDTO> projectMembers = assignedPersonService.findMembersNameByProjectId(projectId);
@@ -246,9 +262,8 @@ public class DashBoardServiceImpl implements DashBoardService {
                 .collect(Collectors.toList());
     }
 
-
-    // 마감일까지 남은 일수 계산
-    private int  calculateDaysUntilDeadline(Timestamp startDate, Timestamp deadLine) {
+    // 마감일까지 남은 일수 계산 - 유틸리티 메서드
+    private int calculateDaysUntilDeadline(Timestamp startDate, Timestamp deadLine) {
         if (startDate == null || deadLine == null) {
             return 0;
         }
@@ -259,7 +274,7 @@ public class DashBoardServiceImpl implements DashBoardService {
         return (int) ChronoUnit.DAYS.between(start, end);
     }
 
-    // 총 작업 일수 계산
+    // 총 작업 일수 계산 - 유틸리티 메서드
     private int calculateTotalDays(Timestamp startDate, Timestamp endDate) {
         if (startDate == null || endDate == null) {
             return 0;
@@ -271,7 +286,7 @@ public class DashBoardServiceImpl implements DashBoardService {
         return (int) ChronoUnit.DAYS.between(start, end);
     }
 
-
+    // 주간 이슈 데이터 생성 - 요일별 그룹화
     private DashBoardWeekendIssueResponseDTO findDashBoardWeekendIssues(List<Issue> issues) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -312,87 +327,78 @@ public class DashBoardServiceImpl implements DashBoardService {
         }
 
         return DashBoardWeekendIssueResponseDTO.builder()
-                .weekendIssue(resultMap)  // 이제 타입이 일치함
+                .weekendIssue(resultMap)
                 .build();
     }
 
+    // 이슈 우선순위별 데이터 생성 - 우선순위별 분류
     private DashBoardIssuePriorityResponseDTO findDashBoardPriority(List<Issue> issues) {
         List<DashBoardIssuePriorityResponseDTO.PriorityData> lowPriorityData = new ArrayList<>();
         List<DashBoardIssuePriorityResponseDTO.PriorityData> normalPriorityData = new ArrayList<>();
         List<DashBoardIssuePriorityResponseDTO.PriorityData> highPriorityData = new ArrayList<>();
         List<DashBoardIssuePriorityResponseDTO.PriorityData> warningPriorityData = new ArrayList<>();
 
-        // TODO member 연결되면 writerName 변경
+        // 이슈 우선순위별 분류
+        for (Issue issue : issues) {
+            String writerName = issue.getMemberId() == null ? "" :
+                    memberService.findMemberProfileById(issue.getMemberId()).getName();
 
-        for(Issue issue : issues) {
-            String writerName = issue.getMemberId() == null ? "" : memberService.findMemberProfileById(issue.getMemberId()).getName();
-
-            if(issue.getPriority().equals(IssuePriority.LOW)) {
-                    lowPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
-                            .id(issue.getId())
-                            .title(issue.getTitle())
-                            .writerName(writerName)
-                            .build());
-
-            }else if(issue.getPriority().equals(IssuePriority.NORMAL)){
-                    normalPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
-                            .id(issue.getId())
-                            .title(issue.getTitle())
-                            .writerName(writerName)
-                            .build());
-
-            }else if(issue.getPriority().equals(IssuePriority.HIGH)){
-                    highPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
-                            .id(issue.getId())
-                            .title(issue.getTitle())
-                            .writerName(writerName)
-                            .build());
-
-            }else if(issue.getPriority().equals(IssuePriority.WARNING)){
-                    warningPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
-                            .id(issue.getId())
-                            .title(issue.getTitle())
-                            .writerName(writerName)
-                            .build());
-
+            if (issue.getPriority().equals(IssuePriority.LOW)) {
+                lowPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
+                        .id(issue.getId())
+                        .title(issue.getTitle())
+                        .writerName(writerName)
+                        .build());
+            } else if (issue.getPriority().equals(IssuePriority.NORMAL)) {
+                normalPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
+                        .id(issue.getId())
+                        .title(issue.getTitle())
+                        .writerName(writerName)
+                        .build());
+            } else if (issue.getPriority().equals(IssuePriority.HIGH)) {
+                highPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
+                        .id(issue.getId())
+                        .title(issue.getTitle())
+                        .writerName(writerName)
+                        .build());
+            } else if (issue.getPriority().equals(IssuePriority.WARNING)) {
+                warningPriorityData.add(DashBoardIssuePriorityResponseDTO.PriorityData.builder()
+                        .id(issue.getId())
+                        .title(issue.getTitle())
+                        .writerName(writerName)
+                        .build());
             }
         }
 
+        // 우선순위별 리스트 생성
         List<DashBoardIssuePriorityResponseDTO.PriorityList> list = new ArrayList<>();
 
-        for(int i = 0; i <4; i++){
-            if(i == 0){
-                DashBoardIssuePriorityResponseDTO.PriorityList priorityList = DashBoardIssuePriorityResponseDTO.PriorityList.builder()
-                        .priority(IssuePriority.LOW)
-                        .priorityDataList(lowPriorityData)
-                        .build();
+        // LOW 우선순위
+        list.add(DashBoardIssuePriorityResponseDTO.PriorityList.builder()
+                .priority(IssuePriority.LOW)
+                .priorityDataList(lowPriorityData)
+                .build());
 
-                list.add(priorityList);
-            }else if(i == 1){
-                DashBoardIssuePriorityResponseDTO.PriorityList priorityList = DashBoardIssuePriorityResponseDTO.PriorityList.builder()
-                        .priority(IssuePriority.NORMAL)
-                        .priorityDataList(normalPriorityData)
-                        .build();
+        // NORMAL 우선순위
+        list.add(DashBoardIssuePriorityResponseDTO.PriorityList.builder()
+                .priority(IssuePriority.NORMAL)
+                .priorityDataList(normalPriorityData)
+                .build());
 
-                list.add(priorityList);
-            }else if(i == 2){
-                DashBoardIssuePriorityResponseDTO.PriorityList priorityList = DashBoardIssuePriorityResponseDTO.PriorityList.builder()
-                        .priority(IssuePriority.HIGH)
-                        .priorityDataList(highPriorityData)
-                        .build();
+        // HIGH 우선순위
+        list.add(DashBoardIssuePriorityResponseDTO.PriorityList.builder()
+                .priority(IssuePriority.HIGH)
+                .priorityDataList(highPriorityData)
+                .build());
 
-                list.add(priorityList);
-            }else if(i == 3){
-                DashBoardIssuePriorityResponseDTO.PriorityList priorityList = DashBoardIssuePriorityResponseDTO.PriorityList.builder()
-                        .priority(IssuePriority.WARNING)
-                        .priorityDataList(warningPriorityData)
-                        .build();
+        // WARNING 우선순위
+        list.add(DashBoardIssuePriorityResponseDTO.PriorityList.builder()
+                .priority(IssuePriority.WARNING)
+                .priorityDataList(warningPriorityData)
+                .build());
 
-                list.add(priorityList);
-            }
-        }
-        return DashBoardIssuePriorityResponseDTO.builder().priority(list).build();
+        return DashBoardIssuePriorityResponseDTO.builder()
+                .priority(list)
+                .build();
     }
-
 }
-
