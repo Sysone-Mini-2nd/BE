@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
-
+/** 작성자: 김대호 */
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor

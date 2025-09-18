@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 @AllArgsConstructor

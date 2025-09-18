@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
-
+/** 작성자: 백승준 */
 @Builder
 @Data
 @NoArgsConstructor

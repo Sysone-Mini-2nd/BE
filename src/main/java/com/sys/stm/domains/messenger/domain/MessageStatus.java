@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-
+/** 작성자: 조윤상 */
 @Getter
 @Setter
 @Builder

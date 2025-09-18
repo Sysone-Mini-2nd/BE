@@ -5,10 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-
+/** 작성자: 조윤상 */
 @Getter
 @Setter
 public class MessageQueryResultDto {
+    private String senderName;
     private Long id;
     private Long senderId;
     private Long chatRoomId;

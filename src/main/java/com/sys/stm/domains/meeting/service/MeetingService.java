@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
-
+/** 작성자: 배지원 */
 public interface MeetingService {
 
     void createMeeting(MeetingCreateRequestDTO request, MultipartFile audioFile, Long memberId, Long projectId);

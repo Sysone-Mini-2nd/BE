@@ -2,7 +2,7 @@ package com.sys.stm.domains.meeting.domain;
 
 import com.sys.stm.global.common.entity.BaseEntity;
 import lombok.*;
-
+/** 작성자: 배지원 */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

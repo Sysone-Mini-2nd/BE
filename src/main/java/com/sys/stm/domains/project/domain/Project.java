@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
+/** 작성자: 백승준 */
 @EqualsAndHashCode(callSuper = true)
 @Builder
 @Data

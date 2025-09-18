@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
+/** 작성자: 배지원 */
 @RestController
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor

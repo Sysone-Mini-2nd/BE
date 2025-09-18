@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 public class DashBoardProjectResponseDTO {                  // 프로젝트 그래프

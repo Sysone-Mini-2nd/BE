@@ -3,7 +3,7 @@ package com.sys.stm.global.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
+/** 작성자: 김대호 */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Override

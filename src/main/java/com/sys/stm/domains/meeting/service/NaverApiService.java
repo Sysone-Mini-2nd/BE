@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+/** 작성자: 배지원 */
 @Service
 public class NaverApiService {
 

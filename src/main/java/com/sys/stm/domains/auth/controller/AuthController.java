@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+/** 작성자: 김대호 */
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")

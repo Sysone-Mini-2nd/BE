@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+/** 작성자: 배지원 */
 @Mapper
 public interface MeetingRepository {
     // 회의록 Entity 조회
@@ -34,17 +34,4 @@ public interface MeetingRepository {
 
     void deleteMeeting(Meeting meeting);
 
-//    // 회의 조회 (ID로)
-//    Optional<Meeting> findById(Long id);
-//
-
-
-//    // 회의 수정
-//    int updateMeeting(Meeting meeting);
-//
-//    // 회의 삭제 (논리 삭제)
-//    int deleteMeeting(Long id);
-//
-//    // 회의 개수 조회
-//    int countByProjectId(Long projectId);
 }

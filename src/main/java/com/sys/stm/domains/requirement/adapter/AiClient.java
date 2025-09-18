@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-
+/** 작성자: 백승준 */
 @Component
 @RequiredArgsConstructor
 public class AiClient {

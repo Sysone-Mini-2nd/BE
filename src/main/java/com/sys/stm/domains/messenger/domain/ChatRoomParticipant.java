@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-
+/** 작성자: 조윤상 */
 @Getter @Setter
 @Builder
 public class ChatRoomParticipant {

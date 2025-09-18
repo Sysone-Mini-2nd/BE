@@ -23,14 +23,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.sys.stm.global.exception.ExceptionMessage.*;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Transactional
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepository chatMessageRepository;
-    private final MemberRepository memberRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final MessageStatusRepository messageStatusRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
@@ -50,18 +49,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         .messageId(message.getId())
 
                 .build());
-        MessageQueryResultDto messageQueryResultDto = chatMessageRepository.findMessageById(message.getId());
-        Optional<MemberResponseDTO> temp = memberRepository.findMemberById(messageQueryResultDto.getSenderId());
-        String senderName = "";
-        if(temp.isPresent()) {
-            senderName = (messageQueryResultDto.getSenderId() == 0) ? "" : temp.get().getName();
-        }
+
+        MessageQueryResultDto messageQueryResultDto = chatMessageRepository.findMessageWithSenderNameById(message.getId());
 
 
         return ChatMessageResponseDto.builder()
                 .id(messageQueryResultDto.getId())
                 .chatRoomId(messageQueryResultDto.getChatRoomId())
-                .senderName(senderName)
+                .senderName(messageQueryResultDto.getSenderName())
                 .type(messageQueryResultDto.getType())
                 .content(messageQueryResultDto.getContent())
                 .fileUrl(messageQueryResultDto.getFileUrl())
@@ -76,24 +71,18 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     @Override
     public List<ChatMessageResponseDto> getMessagesByChatRoomId(long chatRoomId, long memberId, int page, int size) {
-        // 페이지와 사이즈를 레포지토리로 전달
-        List<MessageQueryResultDto> messageList = chatMessageRepository.findMessagesByChatRoomId(chatRoomId, page, size);
+        List<MessageQueryResultDto> messageList = chatMessageRepository.findMessagesWithSenderNameByChatRoomId(chatRoomId, page, size);
 
         return messageList.stream().map((messageQueryResultDto) -> {
-            Optional<MemberResponseDTO> temp = memberRepository.findMemberById(messageQueryResultDto.getSenderId());
-            String senderName = "";
-            if(temp.isPresent()) {
-                senderName = (messageQueryResultDto.getSenderId() == 0) ? "" : temp.get().getName();
-            }
             return ChatMessageResponseDto.builder()
                     .id(messageQueryResultDto.getId())
                     .chatRoomId(messageQueryResultDto.getChatRoomId())
-                    .senderName(senderName) // senderName 필드 채우기
+                    .senderName(messageQueryResultDto.getSenderName())
                     .type(messageQueryResultDto.getType())
                     .content(messageQueryResultDto.getContent())
                     .fileUrl(messageQueryResultDto.getFileUrl())
                     .createdAt(messageQueryResultDto.getCreatedAt())
-                    .isMine(memberId == messageQueryResultDto.getSenderId()) // isMine 필드 할당
+                    .isMine(memberId == messageQueryResultDto.getSenderId())
                     .readCount(messageQueryResultDto.getReadCount() - 1)
                     .senderId(messageQueryResultDto.getSenderId())
                     .build();

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 작성자: 조윤상 -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sys.stm.domains.messenger.dao.ChatMessageRepository">
@@ -81,4 +82,54 @@
         "file_size" = 0
         WHERE "id" = #{messageId}
     </update>
+
+    <!-- 1. ID로 단일 메시지 조회 (발신자 이름 포함) -->
+    <select id="findMessageWithSenderNameById" resultType="com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto">
+        SELECT
+            m."id",
+            m."sender_id" AS "senderId",
+            m."chat_room_id" AS "chatRoomId",
+            m."type",
+            m."content",
+            m."file_url" AS "fileUrl",
+            m."created_at" AS "createdAt",
+            mem."name" AS "senderName",
+            (
+                (SELECT COUNT(*) FROM "chat_room_participants" crp WHERE crp."chat_room_id" = m."chat_room_id") -
+                (SELECT COUNT(*) FROM "message_status" ms WHERE ms."message_id" = m."id")
+            ) AS "readCount"
+        FROM
+            "message" m
+        LEFT JOIN
+            "member" mem ON m."sender_id" = mem."id"
+        WHERE
+            m."id" = #{id}
+    </select>
+
+    <!-- 2. 채팅방 메시지 목록 조회 (발신자 이름 포함) -->
+    <select id="findMessagesWithSenderNameByChatRoomId" resultType="com.sys.stm.domains.messenger.dto.response.MessageQueryResultDto">
+        SELECT
+            m."id",
+            m."sender_id" AS "senderId",
+            m."chat_room_id" AS "chatRoomId",
+            m."type",
+            m."content",
+            m."file_url" AS "fileUrl",
+            m."created_at" AS "createdAt",
+            mem."name" AS "senderName",
+            (
+                (SELECT COUNT(*) FROM "chat_room_participants" crp WHERE crp."chat_room_id" = m."chat_room_id") -
+                (SELECT COUNT(*) FROM "message_status" ms WHERE ms."message_id" = m."id")
+            ) AS "readCount"
+        FROM
+            "message" m
+        LEFT JOIN
+            "member" mem ON m."sender_id" = mem."id"
+        WHERE
+            m."chat_room_id" = #{chatRoomId}
+        ORDER BY
+            m."created_at" DESC
+        OFFSET #{page} * #{size} ROWS
+        FETCH NEXT #{size} ROWS ONLY
+    </select>
 </mapper>

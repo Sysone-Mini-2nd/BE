@@ -4,7 +4,7 @@ import com.sys.stm.domains.comment.dto.request.CommentCreateRequestDTO;
 import com.sys.stm.domains.comment.dto.request.CommentUpdateRequestDTO;
 import com.sys.stm.domains.comment.dto.response.CommentDetailResponseDTO;
 import java.util.List;
-
+/** 작성자: 백승준 */
 public interface CommentService {
     List<CommentDetailResponseDTO> getCommentsByIssueId(Long issueId);
     CommentDetailResponseDTO createIssueComment(Long issueId, CommentCreateRequestDTO commentCreateRequestDTO);

@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Service
 public class MessageStatusService {
@@ -106,6 +106,24 @@ public class MessageStatusService {
         chatRoomRepository.updateRecentMessage(chatRoomId, message.getContent());
 
         return chatMessageRepository.createMessage(message);
+    }
+
+
+    public Message createInitialInvitationMessageforWebsocket(List<String> nameList, long chatRoomId, long memberId) {
+
+        String content = makeInitialInvitationMessage(nameList);
+        // 메세지 만들기
+        Message message = Message.builder()
+                .senderId(memberId)
+                .chatRoomId(chatRoomId)
+                .type("SYSTEM")
+                .content(content)
+                .build();
+
+        chatRoomRepository.updateRecentMessage(chatRoomId, message.getContent());
+
+        chatMessageRepository.createMessage(message);
+        return message;
     }
 
     private String makeInitialInvitationMessage(List<String> nameList) {

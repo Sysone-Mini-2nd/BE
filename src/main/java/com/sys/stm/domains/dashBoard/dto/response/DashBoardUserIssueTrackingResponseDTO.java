@@ -2,7 +2,7 @@ package com.sys.stm.domains.dashBoard.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 public class DashBoardUserIssueTrackingResponseDTO {                // 이슈 그래프

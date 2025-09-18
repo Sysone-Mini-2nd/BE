@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
+/** 작성자: 배지원 */
 @RestController
 @RequestMapping("/api/dashboards")
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class DashBoardController {
         Long memberId = userDetails.getId();
         String loginMemberRole = userDetails.getRole();
 
-        DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId);
+        DashBoardResponseDTO response = dashBoardService.findDashBoard(memberId, projectId,loginMemberRole);
 
 
         return ApiResponse.ok(200,response,"대시보드 데이터 호출 성공");

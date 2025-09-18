@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
+/** 작성자: 배지원 */
 // EmailServiceImpl.java
 @Service
 @RequiredArgsConstructor
@@ -40,15 +40,6 @@ public class EmailServiceImpl implements EmailService {
                 helper.setTo(emailRequest.getTo().toArray(new String[0]));
             }
 
-//            // 참조 설정
-//            if (emailRequest.getCc() != null && !emailRequest.getCc().isEmpty()) {
-//                helper.setCc(emailRequest.getCc().toArray(new String[0]));
-//            }
-//
-//            // 숨은 참조 설정
-//            if (emailRequest.getBcc() != null && !emailRequest.getBcc().isEmpty()) {
-//                helper.setBcc(emailRequest.getBcc().toArray(new String[0]));
-//            }
 
             // 제목 설정
             helper.setSubject(emailRequest.getSubject());

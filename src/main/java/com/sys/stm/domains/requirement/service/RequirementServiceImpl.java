@@ -3,7 +3,7 @@ package com.sys.stm.domains.requirement.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sys.stm.domains.issue.dto.response.IssueMockResponseDTO;
 import com.sys.stm.domains.requirement.adapter.AiClient;
-import com.sys.stm.domains.requirement.dto.AiAnalysisResponseDTO;
+import com.sys.stm.domains.requirement.dto.response.AiAnalysisResponseDTO;
 import com.sys.stm.domains.requirement.util.ExcelParser;
 import com.sys.stm.global.exception.ExceptionMessage;
 import com.sys.stm.global.exception.InvalidFileException;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
+/** 작성자: 백승준 */
 @Service
 @RequiredArgsConstructor
 public class RequirementServiceImpl implements RequirementService {

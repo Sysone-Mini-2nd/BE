@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+/** 작성자: 조윤상 */
 @RequiredArgsConstructor
 @Transactional
 @Service
