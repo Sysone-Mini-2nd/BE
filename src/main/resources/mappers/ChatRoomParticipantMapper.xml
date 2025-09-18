@@ -54,17 +54,12 @@
     </select>
 
     <select id="existChatRoom" resultType="java.lang.Long">
-        SELECT "chat_room_id"
-        FROM "chat_room_participants"
-        WHERE "member_id" IN (#{senderId}, #{readerId})
-        GROUP BY "chat_room_id"
-        HAVING COUNT(DISTINCT "member_id") = 2
-        AND "chat_room_id" IN (
-        SELECT "chat_room_id"
-        FROM "chat_room_participants"
-        GROUP BY "chat_room_id"
-        HAVING COUNT(*) = 2
-        )
+        SELECT crp1.chat_room_id
+        FROM chat_room_participants crp1
+        JOIN chat_room_participants crp2 ON crp1.chat_room_id = crp2.chat_room_id
+        WHERE crp1.member_id = #{senderId} AND crp2.member_id = #{readerId}
+        GROUP BY crp1.chat_room_id
+        HAVING COUNT(DISTINCT crp1.member_id) = 2
     </select>
 </mapper>
 
