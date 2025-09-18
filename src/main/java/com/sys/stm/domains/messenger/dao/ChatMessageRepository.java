@@ -21,5 +21,9 @@ public interface ChatMessageRepository {
     MessageQueryResultDto findMessageById(@Param("messageId") long id);
 
     int softDeleteMessage(@Param("messageId") long messageId);
+
+    MessageQueryResultDto findMessageWithSenderNameById(@Param("id") long id);
+
+    List<MessageQueryResultDto> findMessagesWithSenderNameByChatRoomId(@Param("chatRoomId") long chatRoomId, @Param("page") int page, @Param("size") int size);
 }
 

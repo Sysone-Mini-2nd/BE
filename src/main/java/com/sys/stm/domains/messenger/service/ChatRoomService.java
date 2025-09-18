@@ -1,13 +1,14 @@
 package com.sys.stm.domains.messenger.service;
 
 import com.sys.stm.domains.messenger.dao.ChatRoomRepository;
-import com.sys.stm.domains.messenger.dao.MemberProfileRepository;
 import com.sys.stm.domains.messenger.domain.ChatRoom;
 import com.sys.stm.domains.messenger.domain.ChatRoomParticipant;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomCreateRequestDto;
 import com.sys.stm.domains.messenger.dto.request.ChatRoomUpdateRequestDto;
+import com.sys.stm.domains.messenger.dto.request.CreateOneMessageDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomDataResponseDto;
 import com.sys.stm.domains.messenger.dto.response.ChatRoomInfoResponseDto;
+import com.sys.stm.domains.messenger.util.MessageUtil;
 import com.sys.stm.global.exception.BadRequestException;
 import com.sys.stm.global.exception.ExceptionMessage;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomParticipantService chatRoomParticipantService;
     private final MessageStatusService messageStatusService;
-    private final MemberProfileRepository memberProfileRepository;
-    private final SimpMessagingTemplate messagingTemplate; // SimpMessagingTemplate 주입
+    private final MessageUtil messageUtil;
 
     public List<ChatRoomDataResponseDto> findAllChatRoomsDataById(long id) {
         // 사용자가 속한 채팅방의 기본 정보와 안 읽은 메시지 수를 가져온다.
@@ -140,5 +140,25 @@ public class ChatRoomService {
 
     public long getUnreadCount(Long participantId, Long chatRoomId) {
         return chatRoomRepository.getUnreadCount(participantId, chatRoomId);
+    }
+
+    public void handleOneMessage(CreateOneMessageDto dto, Long memberId) {
+        Long chatRoomId = chatRoomParticipantService.existChatRoom(dto);
+
+        if (chatRoomId != 0L) {
+            messageUtil.createMessage(chatRoomId, dto.getContent(), memberId, "TEXT");
+        } else {
+            // 두 명의 1대1 채팅방이 없으면 새로 생성
+            ChatRoomCreateRequestDto chatRoomCreateRequestDto = new ChatRoomCreateRequestDto(memberId + "", "One_On_One", List.of(dto.getSenderId(), dto.getReaderId()));
+            // 채팅방 생성
+            ChatRoom chatRoom = chatRoomCreateRequestDto.toChatRoom();
+            createChatRoom(chatRoom);
+
+            // 채팅방에 참여자 추가
+            inviteMembers(chatRoomCreateRequestDto.getMemberIdList(), chatRoom.getId(), memberId);
+
+            // 채팅방에 메시지 추가
+            messageUtil.createMessage(chatRoom.getId(), dto.getContent(), memberId, "TEXT");
+        }
     }
 }
