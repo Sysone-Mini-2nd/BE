@@ -31,7 +31,6 @@ public class ChatRoomController {
     private final ChatMessageServiceImpl chatMessageService;
     private final MessageStatusService messageStatusService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final MessageUtil messageUtil;
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
@@ -144,25 +143,7 @@ public class ChatRoomController {
 
     @PostMapping("/oneMessage")
     public ApiResponse<?> createOneMessage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOneMessageDto dto) {
-        long memberId = userDetails.getId();
-        Long chatRoomId = chatRoomParticipantService.existChatRoom(dto);
-
-        if (chatRoomId != 0L) {
-            messageUtil.createMessage(chatRoomId, dto.getContent(), memberId, "TEXT");
-        } else {
-            // 두 명의 1대1 채팅방이 없으면 새로 생성
-            ChatRoomCreateRequestDto chatRoomCreateRequestDto = new ChatRoomCreateRequestDto(memberId + "", "One_On_One", List.of(dto.getSenderId(), dto.getReaderId()));
-            // 채팅방 생성
-            ChatRoom chatRoom = chatRoomCreateRequestDto.toChatRoom();
-            chatRoomService.createChatRoom(chatRoom);
-
-            // 채팅방에 참여자 추가
-            chatRoomService.inviteMembers(chatRoomCreateRequestDto.getMemberIdList(), chatRoom.getId(), memberId);
-
-            // 채팅방에 메시지 추가
-            messageUtil.createMessage(chatRoom.getId(), dto.getContent(), memberId, "TEXT");
-        }
-
+        chatRoomService.handleOneMessage(dto, userDetails.getId());
         return ApiResponse.ok();
     }
 }
