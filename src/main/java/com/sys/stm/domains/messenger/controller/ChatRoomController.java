@@ -10,6 +10,7 @@ import com.sys.stm.domains.messenger.service.ChatMessageServiceImpl;
 import com.sys.stm.domains.messenger.service.ChatRoomParticipantService;
 import com.sys.stm.domains.messenger.service.ChatRoomService;
 import com.sys.stm.domains.messenger.service.MessageStatusService;
+import com.sys.stm.domains.messenger.util.MessageUtil;
 import com.sys.stm.global.common.response.ApiResponse;
 import com.sys.stm.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ChatRoomController {
     private final ChatMessageServiceImpl chatMessageService;
     private final MessageStatusService messageStatusService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MessageUtil messageUtil;
 
     // 본인이 속한 모든 채팅방 조회
     @GetMapping("/all")
@@ -65,13 +67,6 @@ public class ChatRoomController {
     public ApiResponse<String> createChatRoom(@RequestBody ChatRoomCreateRequestDto chatRoomCreateRequestDto
             , @AuthenticationPrincipal CustomUserDetails userDetails) {
         long memberId = userDetails.getId();
-
-        System.out.println("--- Debugging Backend Chat Room Creation ---");
-        System.out.println("Received DTO name: " + chatRoomCreateRequestDto.getName());
-        System.out.println("Received DTO memberIdList: " + chatRoomCreateRequestDto.getMemberIdList());
-        System.out.println("Received DTO type: " + chatRoomCreateRequestDto.getType());
-        System.out.println("Authenticated User ID (creator): " + userDetails.getId());
-        System.out.println("------------------------------------------");
 
         // 채팅방 검증(1. 1:1 메시지인데 채팅방 참여 인원이 여러 명인지, 2. 채팅방 참여 인원 id 리스트가 실제로 존재하는 사람인지)
         chatRoomService.validateChatRoomData(chatRoomCreateRequestDto);
@@ -150,19 +145,10 @@ public class ChatRoomController {
     @PostMapping("/oneMessage")
     public ApiResponse<?> createOneMessage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOneMessageDto dto) {
         long memberId = userDetails.getId();
-
-        // 두 명의 1대1 채팅방이 있는지 확인
         Long chatRoomId = chatRoomParticipantService.existChatRoom(dto);
 
-
-        if (chatRoomId == 1L) {
-            // 두 명의 1대1 채팅방이 있으면 해당 채팅방에 메시지 추가
-            chatMessageService.createMessage(ChatMessageRequestDto.builder()
-                    .chatRoomId(chatRoomId)
-                    .content(dto.getContent())
-                    .senderId(memberId)
-                    .type("TEXT")
-                    .build());
+        if (chatRoomId != 0L) {
+            messageUtil.createMessage(chatRoomId, dto.getContent(), memberId, "TEXT");
         } else {
             // 두 명의 1대1 채팅방이 없으면 새로 생성
             ChatRoomCreateRequestDto chatRoomCreateRequestDto = new ChatRoomCreateRequestDto(memberId + "", "One_On_One", List.of(dto.getSenderId(), dto.getReaderId()));
@@ -173,13 +159,8 @@ public class ChatRoomController {
             // 채팅방에 참여자 추가
             chatRoomService.inviteMembers(chatRoomCreateRequestDto.getMemberIdList(), chatRoom.getId(), memberId);
 
-            // 새로 생성된 채팅방에 메시지 추가
-            chatMessageService.createMessage(ChatMessageRequestDto.builder()
-                    .chatRoomId(chatRoom.getId())
-                    .content(dto.getContent())
-                    .senderId(memberId)
-                    .type("TEXT")
-                    .build());
+            // 채팅방에 메시지 추가
+            messageUtil.createMessage(chatRoom.getId(), dto.getContent(), memberId, "TEXT");
         }
 
         return ApiResponse.ok();
