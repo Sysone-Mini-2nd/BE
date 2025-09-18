@@ -34,17 +34,4 @@ public interface MeetingRepository {
 
     void deleteMeeting(Meeting meeting);
 
-//    // 회의 조회 (ID로)
-//    Optional<Meeting> findById(Long id);
-//
-
-
-//    // 회의 수정
-//    int updateMeeting(Meeting meeting);
-//
-//    // 회의 삭제 (논리 삭제)
-//    int deleteMeeting(Long id);
-//
-//    // 회의 개수 조회
-//    int countByProjectId(Long projectId);
 }

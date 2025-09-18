@@ -6,7 +6,7 @@ import lombok.Data;
 import org.apache.poi.ss.formula.functions.T;
 
 import java.sql.Timestamp;
-
+/** 작성자: 배지원 */
 @Data
 @Builder
 public class MeetingListResponseDTO {

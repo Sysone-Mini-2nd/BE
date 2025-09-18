@@ -148,54 +148,7 @@
 			"updated_at" = #{updatedAt}
 		WHERE "id" = #{id}
 	</delete>
-<!--	&lt;!&ndash; 회의 조회 (ID로) &ndash;&gt;-->
-<!--	<select id="findById" parameterType="long" resultType="com.sys.stm.domains.meeting.domain.Meeting">-->
-<!--		SELECT -->
-<!--			id, -->
-<!--			project_id, -->
-<!--			title, -->
-<!--			member_id, -->
-<!--			type, -->
-<!--			progress_date, -->
-<!--			place, -->
-<!--			participant, -->
-<!--			created_at, -->
-<!--			updated_at, -->
-<!--			is_deleted-->
-<!--		FROM meeting -->
-<!--		WHERE id = #{id} AND is_deleted = 0-->
-<!--	</select>-->
 
-
-
-<!--	&lt;!&ndash; 회의 수정 &ndash;&gt;-->
-<!--	<update id="updateMeeting" parameterType="com.sys.stm.domains.meeting.domain.Meeting">-->
-<!--		UPDATE meeting-->
-<!--		SET -->
-<!--			title = #{title},-->
-<!--			type = #{type},-->
-<!--			progress_date = #{progressDate},-->
-<!--			place = #{place},-->
-<!--			participant = #{participant},-->
-<!--			updated_at = #{updatedAt}-->
-<!--		WHERE id = #{id} AND is_deleted = 0-->
-<!--	</update>-->
-
-<!--	&lt;!&ndash; 회의 삭제 (논리 삭제) &ndash;&gt;-->
-<!--	<update id="deleteMeeting" parameterType="long">-->
-<!--		UPDATE meeting-->
-<!--		SET -->
-<!--			is_deleted = 1,-->
-<!--			updated_at = CURRENT_TIMESTAMP-->
-<!--		WHERE id = #{id}-->
-<!--	</update>-->
-
-<!--	&lt;!&ndash; 회의 개수 조회 &ndash;&gt;-->
-<!--	<select id="countByProjectId" parameterType="long" resultType="int">-->
-<!--		SELECT COUNT(*) -->
-<!--		FROM meeting -->
-<!--		WHERE project_id = #{projectId} AND is_deleted = 0-->
-<!--	</select>-->
 </mapper>
 
 

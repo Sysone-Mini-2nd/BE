@@ -61,7 +61,7 @@ public class DashBoardServiceImpl implements DashBoardService {
 
 
     @Override
-    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId) {
+    public DashBoardResponseDTO findDashBoard(Long memberId, Long projectId, String userRole) {
         String memberRole = assignedPersonService.findRoleByProjectIdAndMemberId(projectId, memberId);
 
         // 1. 역할별 이슈 데이터 조회 (유일한 차이점)
